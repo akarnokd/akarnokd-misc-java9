@@ -24,7 +24,7 @@ public final class MulticastPublisher<T> implements Publisher<T>, AutoCloseable 
     static {
         try {
             SUBSCRIBERS = MethodHandles.lookup().findVarHandle(MulticastPublisher.class, "subscribers", InnerSubscription[].class);
-            DONE = MethodHandles.lookup().findVarHandle(InnerSubscription.class, "done", Boolean.TYPE);
+            DONE = MethodHandles.lookup().findVarHandle(MulticastPublisher.class, "done", Boolean.TYPE);
         } catch (Exception ex) {
             throw new InternalError(ex);
         }
@@ -297,6 +297,7 @@ public final class MulticastPublisher<T> implements Publisher<T>, AutoCloseable 
                                 }
                                 if (badRequest) {
                                     CANCELLED.setRelease(this, true);
+                                    parent.remove(this);
                                     a.onError(new IllegalArgumentException("§3.9 violated: request was not positive"));
                                     continue outer;
                                 }
@@ -321,6 +322,9 @@ public final class MulticastPublisher<T> implements Publisher<T>, AutoCloseable 
                         }
 
                         if (e == r) {
+                            if (cancelled) {
+                                continue outer;
+                            }
                             if (done) {
                                 Throwable ex = error;
                                 if (ex != null) {
