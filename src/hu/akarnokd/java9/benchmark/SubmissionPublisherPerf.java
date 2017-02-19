@@ -1,5 +1,7 @@
 package hu.akarnokd.java9.benchmark;
 
+import io.reactivex.internal.schedulers.ImmediateThinScheduler;
+import io.reactivex.processors.PublishProcessor;
 import org.reactivestreams.Subscription;
 
 import java.lang.invoke.MethodHandles;
@@ -104,7 +106,7 @@ public class SubmissionPublisherPerf {
 
     public static void main(String[] args) {
 
-        benchmark("SubmissionPublisher", () -> {
+        benchmark("MulticastPublisher", () -> {
             MulticastPublisher<Integer> sp = new MulticastPublisher<>(Runnable::run, 128);
 
             MixedSubscriber<Integer> fs = newConsumer();
@@ -112,22 +114,6 @@ public class SubmissionPublisherPerf {
             Integer v = 0;
             for (int i = 0; i < 1_000_000; i++) {
                 sp.offer(v);
-            }
-            return fs;
-        });
-
-/*
-        benchmark("Baseline", () -> null);
-
-
-        benchmark("SubmissionPublisher", () -> {
-            SubmissionPublisher<Integer> sp = new SubmissionPublisher<>(Runnable::run, 128);
-
-            MixedSubscriber<Integer> fs = newConsumer();
-            sp.subscribe(fs);
-            Integer v = 0;
-            for (int i = 0; i < 1_000_000; i++) {
-                sp.submit(v);
             }
             return fs;
         });
@@ -140,6 +126,22 @@ public class SubmissionPublisherPerf {
             Integer v = 0;
             for (int i = 0; i < 1_000_000; i++) {
                 sp.offer(v, null);
+            }
+            return fs;
+        });
+
+/*
+        benchmark("Baseline", () -> null);
+*/
+
+        benchmark("SubmissionPublisher", () -> {
+            SubmissionPublisher<Integer> sp = new SubmissionPublisher<>(Runnable::run, 128);
+
+            MixedSubscriber<Integer> fs = newConsumer();
+            sp.subscribe(fs);
+            Integer v = 0;
+            for (int i = 0; i < 1_000_000; i++) {
+                sp.submit(v);
             }
             return fs;
         });
@@ -191,6 +193,5 @@ public class SubmissionPublisherPerf {
             }
             return fs;
         });
-        */
     }
 }
