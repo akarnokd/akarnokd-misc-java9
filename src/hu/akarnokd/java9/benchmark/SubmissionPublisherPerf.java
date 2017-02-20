@@ -6,9 +6,7 @@ import org.reactivestreams.Subscription;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Flow;
-import java.util.concurrent.SubmissionPublisher;
+import java.util.concurrent.*;
 
 public class SubmissionPublisherPerf {
 
@@ -68,10 +66,16 @@ public class SubmissionPublisherPerf {
         }
     }
 
-    static final class MixedSubscriber<T> implements Flow.Subscriber<T>, org.reactivestreams.Subscriber<T> {
+    static final class MixedSubscriber<T>
+            extends CountDownLatch
+            implements Flow.Subscriber<T>, org.reactivestreams.Subscriber<T> {
 
         volatile Object item;
         static final VarHandle ITEM = checked(() -> MethodHandles.lookup().findVarHandle(MixedSubscriber.class, "item", Object.class));
+
+        MixedSubscriber() {
+            super(1);
+        }
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
@@ -91,11 +95,13 @@ public class SubmissionPublisherPerf {
         @Override
         public void onError(Throwable throwable) {
             ITEM.setRelease(this, throwable);
+            countDown();
         }
 
         @Override
         public void onComplete() {
             ITEM.setRelease(this, null);
+            countDown();
         }
 
     }
@@ -105,6 +111,8 @@ public class SubmissionPublisherPerf {
     }
 
     public static void main(String[] args) {
+
+        benchmark("Baseline", () -> null);
 
         benchmark("MulticastPublisher", () -> {
             MulticastPublisher<Integer> sp = new MulticastPublisher<>(Runnable::run, 128);
@@ -130,9 +138,63 @@ public class SubmissionPublisherPerf {
             return fs;
         });
 
-/*
-        benchmark("Baseline", () -> null);
-*/
+        benchmark("MulticastPublisher-async", () -> {
+            MulticastPublisher<Integer> sp = new MulticastPublisher<>(ForkJoinPool.commonPool(), 128);
+
+            MixedSubscriber<Integer> fs = newConsumer();
+            sp.subscribe(fs);
+            Integer v = 0;
+            for (int i = 0; i < 1_000_000; i++) {
+                while(!sp.offer(v));
+            }
+            sp.close();
+            fs.await();
+
+            return fs;
+        });
+
+        benchmark("MulticastPublisher2-async", () -> {
+            MulticastPublisher2<Integer> sp = new MulticastPublisher2<>(ForkJoinPool.commonPool(), 128);
+
+            MixedSubscriber<Integer> fs = newConsumer();
+            sp.subscribe(fs);
+            Integer v = 0;
+            for (int i = 0; i < 1_000_000; i++) {
+                while(!sp.offer(v));
+            }
+            sp.close();
+            fs.await();
+
+            return fs;
+        });
+
+        benchmark("MulticastPublisher2", () -> {
+            MulticastPublisher2<Integer> sp = new MulticastPublisher2<>(Runnable::run, 128);
+
+            MixedSubscriber<Integer> fs = newConsumer();
+            sp.subscribe(fs);
+            Integer v = 0;
+            for (int i = 0; i < 1_000_000; i++) {
+                sp.offer(v);
+            }
+
+            return fs;
+        });
+
+        benchmark("SubmissionPublisher-async", () -> {
+            SubmissionPublisher<Integer> sp = new SubmissionPublisher<>(ForkJoinPool.commonPool(), 128);
+
+            MixedSubscriber<Integer> fs = newConsumer();
+            sp.subscribe(fs);
+            Integer v = 0;
+            for (int i = 0; i < 1_000_000; i++) {
+                sp.submit(v);
+            }
+            sp.close();
+
+            fs.await();
+            return fs;
+        });
 
         benchmark("SubmissionPublisher", () -> {
             SubmissionPublisher<Integer> sp = new SubmissionPublisher<>(Runnable::run, 128);
