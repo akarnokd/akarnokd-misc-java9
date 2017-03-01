@@ -4,7 +4,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.*;
+import java.util.concurrent.ForkJoinPool;
 
 public final class MulticastPublisher<T> implements Publisher<T>, AutoCloseable {
 
@@ -28,6 +30,10 @@ public final class MulticastPublisher<T> implements Publisher<T>, AutoCloseable 
         } catch (Exception ex) {
             throw new InternalError(ex);
         }
+    }
+
+    public MulticastPublisher() {
+        this(ForkJoinPool.commonPool(), Flow.defaultBufferSize());
     }
 
     public MulticastPublisher(Executor executor, int bufferSize) {
@@ -87,6 +93,7 @@ public final class MulticastPublisher<T> implements Publisher<T>, AutoCloseable 
 
     @Override
     public void subscribe(Subscriber<? super T> subscriber) {
+        Objects.requireNonNull(subscriber, "subscriber is null");
         InnerSubscription<T> inner = new InnerSubscription<T>(subscriber, bufferSize, this);
         if (!add(inner)) {
             Throwable ex = error;
@@ -96,6 +103,10 @@ public final class MulticastPublisher<T> implements Publisher<T>, AutoCloseable 
             inner.done = true;
         }
         inner.drain(executor);
+    }
+
+    public boolean hasSubscribers() {
+        return subscribers.length != 0;
     }
 
     boolean add(InnerSubscription<T> inner) {
