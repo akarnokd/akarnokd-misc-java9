@@ -36,7 +36,7 @@ public final class FlowMap<T, R> implements Flow.Publisher<R> {
         }
 
         @Override
-        protected OnItemResult onItem(Flow.Subscriber<? super R> a, T item) throws Exception {
+        protected OnItemResult onItem(Flow.Subscriber<? super R> a, T item, long index) throws Exception {
             a.onNext(Objects.requireNonNull(mapper.apply(item), "The mapper returned a null item"));
             return OnItemResult.CONTINUE;
         }

@@ -176,7 +176,7 @@ public abstract class FlowAsyncSubscriber<T, R>
 
                     OnItemResult result;
                     try {
-                        result = onItem(a, v);
+                        result = onItem(a, v, ci);
                     } catch (Throwable ex) {
                         cancelled = true;
                         subscription.cancel();
@@ -244,6 +244,6 @@ public abstract class FlowAsyncSubscriber<T, R>
         COMPLETE
     }
 
-    protected abstract OnItemResult onItem(Flow.Subscriber<? super R> a, T item) throws Exception;
+    protected abstract OnItemResult onItem(Flow.Subscriber<? super R> a, T item, long index) throws Exception;
 
 }

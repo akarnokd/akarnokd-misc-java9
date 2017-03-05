@@ -35,7 +35,7 @@ public final class FlowFilter<T> implements Flow.Publisher<T> {
         }
 
         @Override
-        protected OnItemResult onItem(Flow.Subscriber<? super T> a, T item) throws Exception {
+        protected OnItemResult onItem(Flow.Subscriber<? super T> a, T item, long index) throws Exception {
             if (predicate.test(item)) {
                 a.onNext(item);
                 return OnItemResult.CONTINUE;
