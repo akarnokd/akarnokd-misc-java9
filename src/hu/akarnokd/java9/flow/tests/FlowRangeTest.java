@@ -1,5 +1,7 @@
-package hu.akarnokd.java9.flow;
+package hu.akarnokd.java9.flow.tests;
 
+import hu.akarnokd.java9.flow.FlowRange;
+import hu.akarnokd.java9.flow.subscribers.TestFlowSubscriber;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -75,7 +77,7 @@ public class FlowRangeTest {
         assertTrue(ts.values().isEmpty());
         assertEquals(0, ts.completions());
         assertEquals(1, ts.errors().size());
-        assertTrue(ts.errors.get(0) instanceof IllegalArgumentException);
-        assertTrue(ts.errors.get(0).getMessage().contains("3.9"));
+        assertTrue(ts.errors().get(0) instanceof IllegalArgumentException);
+        assertTrue(ts.errors().get(0).getMessage().contains("3.9"));
     }
 }

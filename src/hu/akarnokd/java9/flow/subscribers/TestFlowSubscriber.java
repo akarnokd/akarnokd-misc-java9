@@ -1,4 +1,4 @@
-package hu.akarnokd.java9.flow;
+package hu.akarnokd.java9.flow.subscribers;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package hu.akarnokd.java9.flow;
+package hu.akarnokd.java9.flow.functionals;
 
 public interface FlowFunction<T, R> {
 

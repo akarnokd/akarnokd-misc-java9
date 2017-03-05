@@ -1,4 +1,4 @@
-package hu.akarnokd.java9.flow;
+package hu.akarnokd.java9.flow.subscribers;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
@@ -25,7 +25,7 @@ public abstract class FlowAsyncSubscriber<T, R>
     volatile boolean cancelled;
     volatile boolean badRequest;
     volatile boolean done;
-    Throwable error;
+    protected Throwable error;
 
     volatile long requested;
     static final VarHandle REQUESTED;
@@ -245,5 +245,4 @@ public abstract class FlowAsyncSubscriber<T, R>
     }
 
     protected abstract OnItemResult onItem(Flow.Subscriber<? super R> a, T item, long index) throws Exception;
-
 }
