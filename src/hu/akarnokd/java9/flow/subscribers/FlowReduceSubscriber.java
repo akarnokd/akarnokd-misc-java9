@@ -96,6 +96,10 @@ implements Flow.Subscriber<T>, Flow.Subscription, Runnable {
         schedule();
     }
 
+    protected final boolean isCancelled() {
+        return cancelled;
+    }
+
     protected final void schedule() {
         if (getAndIncrement() == 0) {
             executor.execute(this);

@@ -1,5 +1,6 @@
 package hu.akarnokd.java9.flow;
 
+import hu.akarnokd.java9.flow.functionals.FlowPredicate;
 import hu.akarnokd.java9.flow.subscribers.FlowAsyncSubscriber;
 
 import java.util.concurrent.Executor;
