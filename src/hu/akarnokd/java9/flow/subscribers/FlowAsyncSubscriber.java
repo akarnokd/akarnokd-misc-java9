@@ -73,7 +73,7 @@ public abstract class FlowAsyncSubscriber<T, R>
         long pi = producerIndex;
         int offset = (int)pi & m;
         QUEUE.setRelease(a, offset, item);
-        consumerIndex = pi + 1;
+        producerIndex = pi + 1;
         schedule();
     }
 
@@ -112,6 +112,7 @@ public abstract class FlowAsyncSubscriber<T, R>
     @Override
     public void cancel() {
         cancelled = true;
+        subscription.cancel();
         schedule();
     }
 
