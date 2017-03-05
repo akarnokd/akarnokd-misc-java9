@@ -34,4 +34,24 @@ public class FlowRangeTest {
         assertEquals(1, ts.completions());
         assertTrue(ts.errors().isEmpty());
     }
+
+    @Test
+    public void badRequest() {
+        FlowRange source = new FlowRange(1, 5, Runnable::run);
+
+        TestFlowSubscriber<Integer> ts = new TestFlowSubscriber<>() {
+            @Override
+            public void onStart() {
+                subscription.request(-99);
+            }
+        };
+
+        source.subscribe(ts);
+
+        assertTrue(ts.values().isEmpty());
+        assertEquals(0, ts.completions());
+        assertEquals(1, ts.errors().size());
+        assertTrue(ts.errors.get(0) instanceof IllegalArgumentException);
+        assertTrue(ts.errors.get(0).getMessage().contains("3.9"));
+    }
 }

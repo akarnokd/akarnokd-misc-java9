@@ -81,9 +81,9 @@ public final class FlowRange implements Flow.Publisher<Integer> {
             long r = get();
             int idx = index;
             int f = end;
+            long e = 0L;
 
             for (;;) {
-                long e = 0L;
 
                 while (e != r && idx != f) {
                     if (cancelled) {
@@ -108,13 +108,14 @@ public final class FlowRange implements Flow.Publisher<Integer> {
                     return;
                 };
 
-                e = get();
+                r = get();
                 if (e == r) {
                     index = idx;
                     r = addAndGet(-r);
                     if (r == 0L) {
                         break;
                     }
+                    e = 0L;
                 }
             }
         }
