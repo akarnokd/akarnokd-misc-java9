@@ -185,7 +185,7 @@ public abstract class FlowAsyncSubscriber<T, R>
                         break;
                     }
 
-                    if (result == OnItemResult.COMPLETE) {
+                    if (result == OnItemResult.STOP) {
                         cancelled = true;
                         subscription.cancel();
                         Arrays.fill(q, null);
@@ -240,8 +240,8 @@ public abstract class FlowAsyncSubscriber<T, R>
 
     public enum OnItemResult {
         CONTINUE,
-        SKIPPED,
-        COMPLETE
+        SKIP,
+        STOP
     }
 
     protected abstract OnItemResult onItem(Flow.Subscriber<? super R> a, T item, long index) throws Exception;

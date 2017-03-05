@@ -22,14 +22,14 @@ public final class FlowFilter<T> implements Flow.Publisher<T> {
 
     @Override
     public void subscribe(Flow.Subscriber<? super T> subscriber) {
-        source.subscribe(new MapSubscriber<>(subscriber, predicate, executor, bufferSize));
+        source.subscribe(new FilterSubscriber<>(subscriber, predicate, executor, bufferSize));
     }
 
-    static final class MapSubscriber<T> extends FlowAsyncSubscriber<T, T> {
+    static final class FilterSubscriber<T> extends FlowAsyncSubscriber<T, T> {
 
         final FlowPredicate<? super T> predicate;
 
-        public MapSubscriber(Flow.Subscriber<? super T> actual, FlowPredicate<? super T> predicate, Executor executor, int bufferSize) {
+        public FilterSubscriber(Flow.Subscriber<? super T> actual, FlowPredicate<? super T> predicate, Executor executor, int bufferSize) {
             super(actual, executor, bufferSize);
             this.predicate = predicate;
         }
@@ -40,7 +40,7 @@ public final class FlowFilter<T> implements Flow.Publisher<T> {
                 a.onNext(item);
                 return OnItemResult.CONTINUE;
             }
-            return OnItemResult.SKIPPED;
+            return OnItemResult.SKIP;
         }
     }
 }
