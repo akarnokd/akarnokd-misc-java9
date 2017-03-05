@@ -36,6 +36,30 @@ public class FlowRangeTest {
     }
 
     @Test
+    public void asyncBackpressured() throws InterruptedException {
+        FlowRange source = new FlowRange(1, 5, ForkJoinPool.commonPool());
+        TestFlowSubscriber<Integer> ts = new TestFlowSubscriber<>() {
+            @Override
+            public void onStart() {
+                subscription.request(1);
+            }
+
+            @Override
+            public void onNext(Integer item) {
+                super.onNext(item);
+                subscription.request(1);
+            }
+        };
+
+        source.subscribe(ts);
+
+        assertTrue(ts.await(5, TimeUnit.SECONDS));
+        assertEquals(Arrays.asList(1, 2, 3, 4, 5), ts.values());
+        assertEquals(1, ts.completions());
+        assertTrue(ts.errors().isEmpty());
+    }
+
+    @Test
     public void badRequest() {
         FlowRange source = new FlowRange(1, 5, Runnable::run);
 
