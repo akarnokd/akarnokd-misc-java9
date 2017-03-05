@@ -8,19 +8,21 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 
-public final class FlowReduce<T, R> implements Flow.Publisher<R> {
+public final class FlowReduce<T, R> implements FlowAPI<R> {
 
     final Flow.Publisher<? extends T> source;
 
     final Callable<? extends R> accumulatorSupplier;
 
-    final FlowFunction2<R, T, R> reducer;
+    final FlowFunction2<R, ? super T, R> reducer;
 
     final Executor executor;
 
     final int bufferSize;
 
-    public FlowReduce(Flow.Publisher<? extends T> source, Callable<? extends R> accumulatorSupplier, FlowFunction2<R, T, R> reducer, Executor executor, int bufferSize) {
+    public FlowReduce(Flow.Publisher<? extends T> source,
+                      Callable<? extends R> accumulatorSupplier,
+                      FlowFunction2<R, ? super T, R> reducer, Executor executor, int bufferSize) {
         this.source = source;
         this.accumulatorSupplier = accumulatorSupplier;
         this.reducer = reducer;
@@ -37,11 +39,13 @@ public final class FlowReduce<T, R> implements Flow.Publisher<R> {
     static final class ReduceSubscriber<T, R> extends FlowReduceSubscriber<T, R> {
         final Callable<? extends R> accumulatorSupplier;
 
-        final FlowFunction2<R, T, R> reducer;
+        final FlowFunction2<R, ? super T, R> reducer;
 
         R acc;
 
-        public ReduceSubscriber(Flow.Subscriber<? super R> actual, int bufferSize, Executor executor, Callable<? extends R> accumulatorSupplier, FlowFunction2<R, T, R> reducer) {
+        public ReduceSubscriber(Flow.Subscriber<? super R> actual, int bufferSize,
+                                Executor executor, Callable<? extends R> accumulatorSupplier,
+                                FlowFunction2<R, ? super T, R> reducer) {
             super(actual, bufferSize, executor);
             this.accumulatorSupplier = accumulatorSupplier;
             this.reducer = reducer;

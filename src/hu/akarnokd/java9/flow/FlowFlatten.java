@@ -3,7 +3,7 @@ package hu.akarnokd.java9.flow;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 
-public final class FlowFlatten<T> implements Flow.Publisher<T> {
+public final class FlowFlatten<T> implements FlowAPI<T> {
 
     final Flow.Publisher<? extends Flow.Publisher<? extends T>> sources;
 

@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 
-public final class FlowMap<T, R> implements Flow.Publisher<R> {
+public final class FlowMap<T, R> implements FlowAPI<R> {
 
     final Flow.Publisher<? extends T> source;
 

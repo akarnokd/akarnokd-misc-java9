@@ -24,6 +24,11 @@ public class TestFlowSubscriber<T> implements Flow.Subscriber<T> {
         this.done = new CountDownLatch(1);
     }
 
+    public TestFlowSubscriber(long initialRequest) {
+        this();
+        // FIXME incorporate initial requests
+    }
+
     @Override
     public final void onSubscribe(Flow.Subscription subscription) {
         this.subscription = subscription;
@@ -49,6 +54,10 @@ public class TestFlowSubscriber<T> implements Flow.Subscriber<T> {
     public void onComplete() {
         completions++;
         done.countDown();
+    }
+
+    public final void cancel() {
+        // FIXME implement deferred cancellation
     }
 
     public final List<T> values() {

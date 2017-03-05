@@ -5,7 +5,7 @@ import hu.akarnokd.java9.flow.subscribers.FlowReduceSubscriber;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 
-public final class FlowSumLong implements Flow.Publisher<Long> {
+public final class FlowSumLong implements FlowAPI<Long> {
 
     final Flow.Publisher<? extends Number> source;
 

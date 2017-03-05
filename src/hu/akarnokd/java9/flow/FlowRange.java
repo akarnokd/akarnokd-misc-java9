@@ -4,7 +4,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class FlowRange implements Flow.Publisher<Integer> {
+public final class FlowRange implements FlowAPI<Integer> {
 
     final int start;
     final int end;

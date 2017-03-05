@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 
-public final class FlowCollect<T, C> implements Flow.Publisher<C> {
+public final class FlowCollect<T, C> implements FlowAPI<C> {
 
     final Flow.Publisher<? extends T> source;
 

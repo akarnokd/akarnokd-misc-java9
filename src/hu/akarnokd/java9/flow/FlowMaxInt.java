@@ -5,7 +5,7 @@ import hu.akarnokd.java9.flow.subscribers.FlowReduceSubscriber;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 
-public final class FlowMaxInt implements Flow.Publisher<Integer> {
+public final class FlowMaxInt implements FlowAPI<Integer> {
 
     final Flow.Publisher<? extends Number> source;
 

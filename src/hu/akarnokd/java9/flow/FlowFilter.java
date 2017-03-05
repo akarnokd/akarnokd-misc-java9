@@ -6,7 +6,7 @@ import hu.akarnokd.java9.flow.subscribers.FlowAsyncSubscriber;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 
-public final class FlowFilter<T> implements Flow.Publisher<T> {
+public final class FlowFilter<T> implements FlowAPI<T> {
 
     final Flow.Publisher<? extends T> source;
 
