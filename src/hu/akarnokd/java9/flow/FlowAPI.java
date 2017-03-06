@@ -1,10 +1,13 @@
 package hu.akarnokd.java9.flow;
 
 import hu.akarnokd.java9.flow.functionals.*;
+import hu.akarnokd.java9.flow.subscribers.FlowBlockingFirstSubscriber;
+import hu.akarnokd.java9.flow.subscribers.FlowBlockingLastSubscriber;
 import hu.akarnokd.java9.flow.subscribers.TestFlowSubscriber;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
@@ -260,7 +263,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default <R> FlowAPI<R> flatMapIterable(FlowFunction<? super T, ? extends Iterable<? extends R>> mapper, Executor executor) {
-        return FlowAPIPlugins.onAssembly(new FlowFlatMapIterable<>(this, mapper, executor, Flow.defaultBufferSize()));
+        return FlowAPIPlugins.onAssembly(new FlowFlatMapIterable<>(this, mapper, executor));
     }
 
     // ----------------------------------------------------------------
@@ -277,15 +280,15 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
         throw new UnsupportedOperationException();
     }
 
-    default AutoCloseable subscribe(FlowConsumer<? super T> onNext) {
+    default AutoDisposable subscribe(FlowConsumer<? super T> onNext) {
         return subscribe(onNext, e -> { }, () -> { });
     }
 
-    default AutoCloseable subscribe(FlowConsumer<? super T> onNext, FlowConsumer<? super Throwable> onError) {
+    default AutoDisposable subscribe(FlowConsumer<? super T> onNext, FlowConsumer<? super Throwable> onError) {
         return subscribe(onNext, e -> { }, () -> { });
     }
 
-    default AutoCloseable subscribe(FlowConsumer<? super T> onNext, FlowConsumer<? super Throwable> onError, FlowAction onComplete) {
+    default AutoDisposable subscribe(FlowConsumer<? super T> onNext, FlowConsumer<? super Throwable> onError, FlowAction onComplete) {
         // TODO implement
         throw new UnsupportedOperationException();
     }
@@ -304,23 +307,43 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default T blockingFirst() {
-        // TODO implement
-        throw new UnsupportedOperationException();
+        FlowBlockingFirstSubscriber<T> s = new FlowBlockingFirstSubscriber<>();
+        subscribe(s);
+        T v = s.blockingGet();
+        if (v == null) {
+            throw new NoSuchElementException();
+        }
+        return v;
     }
 
     default T blockingFirst(T defaultItem) {
-        // TODO implement
-        throw new UnsupportedOperationException();
+        FlowBlockingFirstSubscriber<T> s = new FlowBlockingFirstSubscriber<>();
+        subscribe(s);
+        T v = s.blockingGet();
+        if (v == null) {
+            v = defaultItem;
+        }
+        return v;
     }
 
     default T blockingLast() {
-        // TODO implement
-        throw new UnsupportedOperationException();
+        FlowBlockingLastSubscriber<T> s = new FlowBlockingLastSubscriber<>();
+        subscribe(s);
+        T v = s.blockingGet();
+        if (v == null) {
+            throw new NoSuchElementException();
+        }
+        return v;
     }
 
     default T blockingLast(T defaultItem) {
-        // TODO implement
-        throw new UnsupportedOperationException();
+        FlowBlockingLastSubscriber<T> s = new FlowBlockingLastSubscriber<>();
+        subscribe(s);
+        T v = s.blockingGet();
+        if (v == null) {
+            v = defaultItem;
+        }
+        return v;
     }
 
     default T blockingSingle() {
