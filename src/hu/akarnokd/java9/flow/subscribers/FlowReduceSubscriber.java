@@ -85,8 +85,8 @@ public abstract class FlowReduceSubscriber<T, R> extends FlowAsyncSubscriber<T, 
                         a.onError(ex);
                     } else
                     if (requested) {
-                        cancelled = true;
                         onEnd(a, ci);
+                        cancelled = true;
                     }
                     break;
                 }
@@ -94,6 +94,8 @@ public abstract class FlowReduceSubscriber<T, R> extends FlowAsyncSubscriber<T, 
                 if (empty) {
                     break;
                 }
+
+                QUEUE.setRelease(q, offset, null);
 
                 try {
                     onItem(v, ci);

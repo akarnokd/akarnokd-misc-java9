@@ -169,12 +169,13 @@ public final class FlowFlatMapIterable<T, R> implements FlowAPI<R> {
                                 a.onComplete();
                             }
                         } else if (!empty) {
-                            CURRENT.set(this, null);
+                            CURRENT.setRelease(this, null);
                             boolean b;
                             try {
                                 it = mapper.apply(v).iterator();
                                 b = it.hasNext();
                                 if (!b) {
+                                    it = null;
                                     subscription.request(1);
                                 } else {
                                     currentIterator = it;

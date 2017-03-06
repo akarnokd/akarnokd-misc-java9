@@ -21,5 +21,6 @@ public final class FlowFlatten<T> implements FlowAPI<T> {
     @Override
     public void subscribe(Flow.Subscriber<? super T> subscriber) {
         // TODO implement
+        throw new UnsupportedOperationException();
     }
 }

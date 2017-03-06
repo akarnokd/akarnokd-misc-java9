@@ -149,7 +149,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     static <T> FlowAPI<T> concatArray(Executor executor, Flow.Publisher<? extends T>... sources) {
         Objects.requireNonNull(sources, "sources is null");
         Objects.requireNonNull(executor, "executor is null");
-        return FlowAPIPlugins.onAssembly(new FlowConcatArray<>(sources, executor));
+        return FlowAPIPlugins.onAssembly(new FlowConcatArray<>(sources, executor, Flow.defaultBufferSize()));
     }
 
     static <T> FlowAPI<T> merge(Iterable<? extends Flow.Publisher<? extends T>> sources) {

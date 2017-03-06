@@ -134,7 +134,7 @@ abstract class FlowAsyncSubscriberWip<T, R> extends FlowAsyncSubscriberPad1<T, R
     }
 
     protected final int addAndGet(int diff) {
-        return (int)WIP.getAndAdd(diff) + diff;
+        return (int)WIP.getAndAdd(this, diff) + diff;
     }
 }
 

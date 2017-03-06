@@ -1,6 +1,7 @@
 package hu.akarnokd.java9.flow.subscribers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
@@ -74,5 +75,15 @@ public class TestFlowSubscriber<T> implements Flow.Subscriber<T> {
 
     public final boolean await(long timeout, TimeUnit unit) throws InterruptedException {
         return done.await(timeout, unit);
+    }
+
+    public final TestFlowSubscriber<T> assertResult(T... items) {
+        if (!values.equals(Arrays.asList(items))) {
+            throw new AssertionError("Expected: " + Arrays.toString(items) + ", Actual: " + values);
+        }
+        if (completions != 1) {
+            throw new AssertionError("Not completed: " + completions);
+        }
+        return this;
     }
 }

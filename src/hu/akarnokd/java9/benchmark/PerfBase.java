@@ -34,7 +34,7 @@ public abstract class PerfBase {
                 timesCounts[i * 2] = end - start;
                 timesCounts[i * 2 + 1] = count;
 
-                System.out.printf("%,.3f ops/s%n", count * 1000d / (end - start));
+                System.out.printf("%,.3f ops/s; %,.3f ms/op%n", count * 1000d / (end - start), (end - start) * 1d / count);
             }
 
             System.out.print(name);
@@ -47,7 +47,7 @@ public abstract class PerfBase {
                 cnt += timesCounts[i * 2 + 1];
             }
 
-            System.out.printf("%,.3f ops/s%n%n", cnt * 1000d / sum);
+            System.out.printf("%,.3f ops/s; %,.3f ms/op%n%n", cnt * 1000d / sum, sum * 1d / cnt);
         } catch (Throwable ex) {
             ex.printStackTrace();
         }

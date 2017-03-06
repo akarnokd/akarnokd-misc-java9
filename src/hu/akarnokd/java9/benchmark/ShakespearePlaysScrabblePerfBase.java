@@ -50,7 +50,7 @@ public abstract class ShakespearePlaysScrabblePerfBase extends PerfBase {
                     .map(String::toLowerCase)
                     .forEach(scrabbleWords::add);
 
-            Files.lines(Paths.get("files/shakespeareWords.shakespeare.txt"))
+            Files.lines(Paths.get("files/words.shakespeare.txt"))
                     .map(String::toLowerCase)
                     .forEach(shakespeareWords::add);
         } catch (IOException ex) {

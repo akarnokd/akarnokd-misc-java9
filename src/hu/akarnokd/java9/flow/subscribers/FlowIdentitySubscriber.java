@@ -103,6 +103,8 @@ public abstract class FlowIdentitySubscriber<T, R> extends FlowAsyncSubscriber<T
                         break;
                     }
 
+                    QUEUE.setRelease(q, offset, null);
+
                     OnItemResult result;
                     try {
                         result = onItem(a, v, ci);
