@@ -19,5 +19,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="org.reactivestreams:reactive-streams-tck:1.0.0" level="project" />
+    <orderEntry type="library" name="com.typesafe.akka:akka-actor_2.11:2.5-M2" level="project" />
   </component>
 </module>

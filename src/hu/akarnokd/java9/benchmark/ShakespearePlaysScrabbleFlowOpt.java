@@ -1,5 +1,6 @@
 package hu.akarnokd.java9.benchmark;
 
+import akka.actor.*;
 import hu.akarnokd.java9.flow.FlowAPI;
 import hu.akarnokd.java9.flow.FlowAPIPlugins;
 import hu.akarnokd.java9.flow.functionals.FlowFunction;
@@ -140,17 +141,13 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
 
     public static void main(String[] args) {
 
+
         FlowAPIPlugins.executor = Runnable::run;
 
         benchmark("ShakespearePlaysScrabbleFlowOpt", () -> {
 
             return bench();
         });
-
-        /*
-        ExecutorService exec = Executors.newCachedThreadPool();
-        FlowAPIPlugins.executor = exec;
-        */
 
         FlowAPIPlugins.reset();
 
@@ -159,6 +156,30 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
             return bench();
         });
 
-        //exec.shutdownNow();
+        ActorSystem actorSystem = ActorSystem.create();
+
+
+        FlowAPIPlugins.onExecutor = e -> {
+            ActorRef actor = actorSystem.actorOf(Props.create(ActorExecutor.class));
+            return r -> actor.tell(r, ActorRef.noSender());
+        };
+
+        benchmark("ShakespearePlaysScrabbleFlowOpt-Actor", () -> {
+
+            return bench();
+        });
+
+
+        actorSystem.terminate();
+    }
+
+    static final class ActorExecutor extends UntypedActor {
+
+        @Override
+        public void onReceive(Object message) throws Exception {
+            Runnable r = (Runnable)message;
+
+            r.run();
+        }
     }
 }

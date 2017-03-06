@@ -19,7 +19,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     // -------------------------------------------------------------
 
     static <T> FlowAPI<T> just(T item) {
-        return just(item, FlowAPIPlugins.executor);
+        return just(item, FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> just(T item, Executor executor) {
@@ -29,7 +29,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static <T> FlowAPI<T> empty() {
-        return empty(FlowAPIPlugins.executor);
+        return empty(FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> empty(Executor executor) {
@@ -39,7 +39,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static FlowAPI<Integer> range(int start, int count) {
-        return range(start, count, FlowAPIPlugins.executor);
+        return range(start, count, FlowAPIPlugins.defaultExecutor());
     }
 
     static FlowAPI<Integer> range(int start, int count, Executor executor) {
@@ -57,7 +57,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static FlowAPI<Integer> characters(CharSequence cs) {
-        return characters(cs, FlowAPIPlugins.executor);
+        return characters(cs, FlowAPIPlugins.defaultExecutor());
     }
 
     static FlowAPI<Integer> characters(CharSequence cs, Executor executor) {
@@ -67,7 +67,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
 
     @SafeVarargs
     static <T> FlowAPI<T> fromArray(T... items) {
-        return fromArray(FlowAPIPlugins.executor, items);
+        return fromArray(FlowAPIPlugins.defaultExecutor(), items);
     }
 
     @SafeVarargs
@@ -77,7 +77,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static <T> FlowAPI<T> fromIterable(Iterable<T> source) {
-        return fromIterable(source, FlowAPIPlugins.executor);
+        return fromIterable(source, FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> fromIterable(Iterable<T> source, Executor executor) {
@@ -87,7 +87,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static <T> FlowAPI<T> fromStream(Stream<T> source) {
-        return fromStream(source, FlowAPIPlugins.executor);
+        return fromStream(source, FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> fromStream(Stream<T> source, Executor executor) {
@@ -118,7 +118,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static <T> FlowAPI<T> concat(Iterable<? extends Flow.Publisher<? extends T>> sources) {
-        return concat(sources, FlowAPIPlugins.executor);
+        return concat(sources, FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> concat(Iterable<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
@@ -129,7 +129,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static <T> FlowAPI<T> concatMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources) {
-        return concatMany(sources, FlowAPIPlugins.executor);
+        return concatMany(sources, FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> concatMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
@@ -142,7 +142,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
 
     @SafeVarargs
     static <T> FlowAPI<T> concatArray(Flow.Publisher<? extends T>... sources) {
-        return concatArray(FlowAPIPlugins.executor, sources);
+        return concatArray(FlowAPIPlugins.defaultExecutor(), sources);
     }
 
     @SafeVarargs
@@ -153,7 +153,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static <T> FlowAPI<T> merge(Iterable<? extends Flow.Publisher<? extends T>> sources) {
-        return merge(sources, FlowAPIPlugins.executor);
+        return merge(sources, FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> merge(Iterable<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
@@ -164,7 +164,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static <T> FlowAPI<T> mergeMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources) {
-        return mergeMany(sources, FlowAPIPlugins.executor);
+        return mergeMany(sources, FlowAPIPlugins.defaultExecutor());
     }
 
     static <T> FlowAPI<T> mergeMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
@@ -179,7 +179,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     // -------------------------------------------------------------------------
 
     default <R> FlowAPI<R> map(FlowFunction<? super T, ? extends R> mapper) {
-        return map(mapper, FlowAPIPlugins.executor);
+        return map(mapper, FlowAPIPlugins.defaultExecutor());
     }
 
     default <R> FlowAPI<R> map(FlowFunction<? super T, ? extends R> mapper, Executor executor) {
@@ -187,7 +187,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default FlowAPI<T> filter(FlowPredicate<? super T> predicate) {
-        return filter(predicate, FlowAPIPlugins.executor);
+        return filter(predicate, FlowAPIPlugins.defaultExecutor());
     }
 
     default FlowAPI<T> filter(FlowPredicate<? super T> predicate, Executor executor) {
@@ -195,7 +195,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default FlowAPI<T> take(long n) {
-        return take(n, FlowAPIPlugins.executor);
+        return take(n, FlowAPIPlugins.defaultExecutor());
     }
 
     default FlowAPI<T> take(long n, Executor executor) {
@@ -203,7 +203,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default FlowAPI<T> skip(long n) {
-        return skip(n, FlowAPIPlugins.executor);
+        return skip(n, FlowAPIPlugins.defaultExecutor());
     }
 
     default FlowAPI<T> skip(long n, Executor executor) {
@@ -211,7 +211,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default <C> FlowAPI<C> collect(Callable<? extends C> collectionSupplier, FlowConsumer2<? super C, ? super T> collector) {
-        return collect(collectionSupplier, collector, FlowAPIPlugins.executor);
+        return collect(collectionSupplier, collector, FlowAPIPlugins.defaultExecutor());
     }
 
     default <C> FlowAPI<C> collect(Callable<? extends C> collectionSupplier, FlowConsumer2<? super C, ? super T> collector, Executor executor) {
@@ -219,7 +219,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default <R> FlowAPI<R> reduce(Callable<? extends R> initialSupplier, FlowFunction2<R, ? super T, R> reducer) {
-        return reduce(initialSupplier, reducer, FlowAPIPlugins.executor);
+        return reduce(initialSupplier, reducer, FlowAPIPlugins.defaultExecutor());
     }
 
     default <R> FlowAPI<R> reduce(Callable<? extends R> initialSupplier, FlowFunction2<R, ? super T, R> reducer, Executor executor) {
@@ -227,7 +227,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default FlowAPI<Integer> sumInt() {
-        return sumInt(FlowAPIPlugins.executor);
+        return sumInt(FlowAPIPlugins.defaultExecutor());
     }
 
     default FlowAPI<Integer> sumInt(Executor executor) {
@@ -235,7 +235,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default FlowAPI<Long> sumLong() {
-        return sumLong(FlowAPIPlugins.executor);
+        return sumLong(FlowAPIPlugins.defaultExecutor());
     }
 
     default FlowAPI<Long> sumLong(Executor executor) {
@@ -243,7 +243,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default FlowAPI<Integer> maxInt() {
-        return maxInt(FlowAPIPlugins.executor);
+        return maxInt(FlowAPIPlugins.defaultExecutor());
     }
 
     default FlowAPI<Integer> maxInt(Executor executor) {
@@ -251,7 +251,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default FlowAPI<List<T>> toList() {
-        return toList(FlowAPIPlugins.executor);
+        return toList(FlowAPIPlugins.defaultExecutor());
     }
 
     default FlowAPI<List<T>> toList(Executor executor) {
@@ -259,7 +259,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     default <R> FlowAPI<R> flatMapIterable(FlowFunction<? super T, ? extends Iterable<? extends R>> mapper) {
-        return flatMapIterable(mapper, FlowAPIPlugins.executor);
+        return flatMapIterable(mapper, FlowAPIPlugins.defaultExecutor());
     }
 
     default <R> FlowAPI<R> flatMapIterable(FlowFunction<? super T, ? extends Iterable<? extends R>> mapper, Executor executor) {

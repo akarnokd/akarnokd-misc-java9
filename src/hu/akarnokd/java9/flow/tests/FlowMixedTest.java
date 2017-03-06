@@ -111,6 +111,8 @@ public class FlowMixedTest {
 
     @Test
     public void sumLongAsync() {
+        FlowAPIPlugins.reset();
+
         for (int i = 0; i < 1000; i++) {
             FlowAPI.range(1, 1000)
                     .map(v -> 1)
@@ -123,6 +125,8 @@ public class FlowMixedTest {
 
     @Test
     public void flatMapIterableAsync() {
+        FlowAPIPlugins.reset();
+
         for (int i = 0; i < 1000; i++) {
             FlowAPI.range(1, 1000)
                     .flatMapIterable(v -> Collections.singleton(v))
