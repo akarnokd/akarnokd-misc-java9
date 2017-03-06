@@ -111,7 +111,7 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
                         .filter(scrabbleWords::contains)
                         //.filter(word -> checkBlanks.apply(word).blockingFirst())
                         .filterAsync(checkBlanks)
-                        .mapAsync(w -> score.apply(w).map(j -> Map.entry(j, w)))
+                        .mapAsync(score, (w, j) -> Map.entry(j, w))
                         .collect(
                                 () -> new TreeMap<Integer, List<String>>(Comparator.reverseOrder()),
                                 (TreeMap<Integer, List<String>> map, Map.Entry<Integer, String> word) -> {

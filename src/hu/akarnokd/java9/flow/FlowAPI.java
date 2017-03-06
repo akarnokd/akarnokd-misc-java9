@@ -275,11 +275,19 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
 
 
     default <R> FlowAPI<R> mapAsync(FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper) {
-        return mapAsync(asyncMapper, FlowAPIPlugins.defaultExecutor());
+        return mapAsync(asyncMapper, (v, u) -> u, FlowAPIPlugins.defaultExecutor());
     }
 
     default <R> FlowAPI<R> mapAsync(FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper, Executor executor) {
-        return FlowAPIPlugins.onAssembly(new FlowMapAsync<>(this, executor, asyncMapper, Flow.defaultBufferSize()));
+        return mapAsync(asyncMapper, (v, u) -> u, executor);
+    }
+
+    default <U, R> FlowAPI<R> mapAsync(FlowFunction<? super T, ? extends Flow.Publisher<? extends U>> asyncMapper, FlowFunction2<? super T, ? super U, ? extends R> resultMapper) {
+        return mapAsync(asyncMapper, resultMapper, FlowAPIPlugins.defaultExecutor());
+    }
+
+    default <U, R> FlowAPI<R> mapAsync(FlowFunction<? super T, ? extends Flow.Publisher<? extends U>> asyncMapper, FlowFunction2<? super T, ? super U, ? extends R> resultMapper, Executor executor) {
+        return FlowAPIPlugins.onAssembly(new FlowMapAsyncBoth<T, U, R>(this, executor, asyncMapper, resultMapper, Flow.defaultBufferSize()));
     }
 
     // ----------------------------------------------------------------

@@ -2,6 +2,7 @@ package hu.akarnokd.java9.flow;
 
 import hu.akarnokd.java9.flow.functionals.AutoDisposable;
 import hu.akarnokd.java9.flow.functionals.FlowFunction;
+import hu.akarnokd.java9.flow.functionals.FlowFunction2;
 import hu.akarnokd.java9.flow.utils.AutoDisposableHelper;
 import hu.akarnokd.java9.flow.utils.SubscriptionHelper;
 
@@ -14,36 +15,44 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public final class FlowMapAsync<T, R> implements FlowAPI<R> {
+public final class FlowMapAsyncBoth<T, U, R> implements FlowAPI<R> {
 
     final Flow.Publisher<T> source;
 
     final Executor executor;
 
-    final FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper;
+    final FlowFunction<? super T, ? extends Flow.Publisher<? extends U>> asyncMapper;
+
+    final FlowFunction2<? super T, ? super U, ? extends R> resultMapper;
 
     final int bufferSize;
 
-    public FlowMapAsync(Flow.Publisher<T> source, Executor executor, FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper, int bufferSize) {
+    public FlowMapAsyncBoth(Flow.Publisher<T> source, Executor executor,
+                            FlowFunction<? super T, ? extends Flow.Publisher<? extends U>> asyncMapper,
+                            FlowFunction2<? super T, ? super U, ? extends R> resultMapper,
+                            int bufferSize) {
         this.source = source;
         this.executor = executor;
         this.asyncMapper = asyncMapper;
+        this.resultMapper = resultMapper;
         this.bufferSize = bufferSize;
     }
 
     @Override
     public void subscribe(Flow.Subscriber<? super R> subscriber) {
-        source.subscribe(new MapAsyncSubscriber<T, R>(subscriber, executor, asyncMapper, bufferSize));
+        source.subscribe(new MapAsyncSubscriber<T, U, R>(subscriber, executor, asyncMapper, resultMapper, bufferSize));
     }
 
-    static final class MapAsyncSubscriber<T, R> extends AtomicInteger
+    static final class MapAsyncSubscriber<T, U, R> extends AtomicInteger
     implements Flow.Subscriber<T>, Flow.Subscription, Runnable {
 
         final Flow.Subscriber<? super R> actual;
 
         final Executor executor;
 
-        final FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper;
+        final FlowFunction<? super T, ? extends Flow.Publisher<? extends U>> asyncMapper;
+
+        final FlowFunction2<? super T, ? super U, ? extends R> resultMapper;
 
         final int limit;
 
@@ -74,7 +83,7 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
         static final int RESPONSE_STARTED = 1;
         static final int RESPONSE_PASS = 2;
         static final int RESPONSE_SKIP = 3;
-        R value;
+        U value;
 
 
         volatile long requested;
@@ -95,10 +104,14 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
         }
 
 
-        MapAsyncSubscriber(Flow.Subscriber<? super R> actual, Executor executor, FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper, int bufferSize) {
+        MapAsyncSubscriber(Flow.Subscriber<? super R> actual, Executor executor,
+                           FlowFunction<? super T, ? extends Flow.Publisher<? extends U>> asyncMapper,
+                           FlowFunction2<? super T, ? super U, ? extends R> resultMapper,
+                           int bufferSize) {
             this.actual = actual;
             this.executor = executor;
             this.asyncMapper = asyncMapper;
+            this.resultMapper = resultMapper;
             this.limit = bufferSize - (bufferSize >> 2);
             this.queue = (T[])new Object[bufferSize];
         }
@@ -166,7 +179,7 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
             }
         }
 
-        void innerResult(boolean hasValue, R result) {
+        void innerResult(boolean hasValue, U result) {
             this.value = result;
             RESPONSE.setRelease(this, hasValue ? RESPONSE_PASS : RESPONSE_SKIP);
             schedule();
@@ -241,13 +254,14 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
                         if (state == RESPONSE_NONE) {
                             RESPONSE.set(this, RESPONSE_STARTED);
 
-                            Flow.Publisher<? extends R> p;
+                            Flow.Publisher<? extends U> p;
 
                             try {
                                 p = Objects.requireNonNull(asyncMapper.apply(v), "The asyncPredicate returned a null Publisher");
                             } catch (Throwable ex) {
                                 cancelled = true;
                                 subscription.cancel();
+                                Arrays.fill(q, null);
                                 a.onError(ex);
                                 break;
                             }
@@ -260,9 +274,21 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
                         } else if (state == RESPONSE_PASS) {
                             INNER.set(this, null);
                             QUEUE.setRelease(q, offset, null);
-                            R u = value;
+                            U u = value;
                             value = null;
-                            a.onNext(u);
+
+                            R x;
+                            try {
+                                x = Objects.requireNonNull(resultMapper.apply(v, u), "The resultMapper returned a null value");
+                            } catch (Throwable ex) {
+                                cancelled = true;
+                                subscription.cancel();
+                                Arrays.fill(q, null);
+                                a.onError(ex);
+                                break;
+                            }
+
+                            a.onNext(x);
 
                             e++;
                             ci++;
@@ -279,6 +305,7 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
                             if (ex != null) {
                                 cancelled = true;
                                 subscription.cancel();
+                                Arrays.fill(q, null);
                                 a.onError(ex);
                                 break;
                             }
@@ -331,10 +358,10 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
             }
         }
 
-        final class InnerSubscriber extends AtomicReference<Flow.Subscription> implements Flow.Subscriber<R>, AutoDisposable {
+        final class InnerSubscriber extends AtomicReference<Flow.Subscription> implements Flow.Subscriber<U>, AutoDisposable {
 
             boolean hasValue;
-            R result;
+            U result;
             boolean once;
 
             @Override
@@ -345,7 +372,7 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
             }
 
             @Override
-            public void onNext(R item) {
+            public void onNext(U item) {
                 if (hasValue) {
                     cancel();
                 } else {
@@ -357,6 +384,7 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
             @Override
             public void onError(Throwable throwable) {
                 if (!once) {
+                    result = null;
                     once = true;
                     innerError(throwable);
                 }
@@ -366,7 +394,9 @@ public final class FlowMapAsync<T, R> implements FlowAPI<R> {
             public void onComplete() {
                 if (!once) {
                     once = true;
-                    innerResult(hasValue, result);
+                    U item = result;
+                    result = null;
+                    innerResult(hasValue, item);
                 }
             }
 
