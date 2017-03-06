@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class TestFlowSubscriber<T> implements Flow.Subscriber<T> {
 
@@ -80,6 +81,35 @@ public class TestFlowSubscriber<T> implements Flow.Subscriber<T> {
     public final TestFlowSubscriber<T> assertResult(T... items) {
         if (!values.equals(Arrays.asList(items))) {
             throw new AssertionError("Expected: " + Arrays.toString(items) + ", Actual: " + values);
+        }
+        if (completions != 1) {
+            throw new AssertionError("Not completed: " + completions);
+        }
+        return this;
+    }
+
+    public final TestFlowSubscriber<T> awaitDone(long timeout, TimeUnit unit) {
+        try {
+            if (!done.await(timeout, unit)) {
+                subscription.cancel();
+                throw new RuntimeException("Timed out. Values: " + values.size()
+                        + ", Errors: " + errors.size() + ", Completions: " + completions);
+            }
+        } catch (InterruptedException ex) {
+            throw new RuntimeException("Interrupted");
+        }
+        return this;
+    }
+
+    public final TestFlowSubscriber<T> assertRange(int start, int count) {
+        if (values.size() != count) {
+            throw new AssertionError("Expected: " + count + ", Actual: " + values.size());
+        }
+        for (int i = 0; i < count; i++) {
+            if ((Integer)values.get(i) != start + i) {
+                throw new AssertionError("Index: " + i + ", Expected: "
+                        + (i + start) + ", Actual: " +values.get(i));
+            }
         }
         if (completions != 1) {
             throw new AssertionError("Not completed: " + completions);

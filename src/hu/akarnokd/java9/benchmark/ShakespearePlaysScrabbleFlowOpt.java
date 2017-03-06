@@ -5,6 +5,8 @@ import hu.akarnokd.java9.flow.FlowAPIPlugins;
 import hu.akarnokd.java9.flow.functionals.FlowFunction;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePerfBase {
 
@@ -145,11 +147,18 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
             return bench();
         });
 
+        /*
+        ExecutorService exec = Executors.newCachedThreadPool();
+        FlowAPIPlugins.executor = exec;
+        */
+
         FlowAPIPlugins.reset();
 
         benchmark("ShakespearePlaysScrabbleFlowOpt-Async", () -> {
 
             return bench();
         });
+
+        //exec.shutdownNow();
     }
 }

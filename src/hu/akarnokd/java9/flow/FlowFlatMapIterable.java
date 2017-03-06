@@ -147,6 +147,7 @@ public final class FlowFlatMapIterable<T, R> implements FlowAPI<R> {
             Iterator<? extends R> it = currentIterator;
             long e = emitted;
 
+            outer:
             for (;;) {
                 if (it == null) {
                     if (cancelled) {
@@ -168,6 +169,7 @@ public final class FlowFlatMapIterable<T, R> implements FlowAPI<R> {
                             } else {
                                 a.onComplete();
                             }
+                            cancelled = true;
                         } else if (!empty) {
                             CURRENT.setRelease(this, null);
                             boolean b;
@@ -177,6 +179,7 @@ public final class FlowFlatMapIterable<T, R> implements FlowAPI<R> {
                                 if (!b) {
                                     it = null;
                                     subscription.request(1);
+                                    continue outer;
                                 } else {
                                     currentIterator = it;
                                 }
@@ -250,7 +253,7 @@ public final class FlowFlatMapIterable<T, R> implements FlowAPI<R> {
                             it = null;
                             currentIterator = null;
                             subscription.request(1);
-                            break;
+                            continue outer;
                         }
                     }
                     if (e == r) {

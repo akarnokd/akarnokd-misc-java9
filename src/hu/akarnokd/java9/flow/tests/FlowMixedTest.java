@@ -91,4 +91,44 @@ public class FlowMixedTest {
                 .test()
                 .assertResult(1000);
     }
+
+    @Test
+    public void longSequenceAsync() {
+        FlowAPIPlugins.reset();
+
+        for (int i = 0; i < 1000; i++) {
+            FlowAPI.range(1, 1000)
+                    .map(v -> v)
+                    .filter(v -> true)
+                    .take(Long.MAX_VALUE)
+                    .skip(0)
+                    .reduce(() -> 0, (a, b) -> b)
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertResult(1000);
+        }
+    }
+
+    @Test
+    public void sumLongAsync() {
+        for (int i = 0; i < 1000; i++) {
+            FlowAPI.range(1, 1000)
+                    .map(v -> 1)
+                    .sumLong()
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertResult(1000L);
+        }
+    }
+
+    @Test
+    public void flatMapIterableAsync() {
+        for (int i = 0; i < 1000; i++) {
+            FlowAPI.range(1, 1000)
+                    .flatMapIterable(v -> Collections.singleton(v))
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertRange(1, 1000);
+        }
+    }
 }
