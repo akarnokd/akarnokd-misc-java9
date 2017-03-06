@@ -1,7 +1,7 @@
 package hu.akarnokd.java9.flow;
 
 import hu.akarnokd.java9.flow.functionals.FlowPredicate;
-import hu.akarnokd.java9.flow.subscribers.FlowAsyncSubscriber;
+import hu.akarnokd.java9.flow.subscribers.FlowIdentitySubscriber;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
@@ -28,7 +28,7 @@ public final class FlowFilter<T> implements FlowAPI<T> {
         source.subscribe(new FilterSubscriber<>(subscriber, predicate, executor, bufferSize));
     }
 
-    static final class FilterSubscriber<T> extends FlowAsyncSubscriber<T, T> {
+    static final class FilterSubscriber<T> extends FlowIdentitySubscriber<T, T> {
 
         final FlowPredicate<? super T> predicate;
 

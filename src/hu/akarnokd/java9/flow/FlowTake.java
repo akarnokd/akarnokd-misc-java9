@@ -1,6 +1,6 @@
 package hu.akarnokd.java9.flow;
 
-import hu.akarnokd.java9.flow.subscribers.FlowAsyncSubscriber;
+import hu.akarnokd.java9.flow.subscribers.FlowIdentitySubscriber;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
@@ -27,7 +27,7 @@ public final class FlowTake<T> implements FlowAPI<T> {
         source.subscribe(new TakeSubscriber<>(subscriber, n, executor, bufferSize));
     }
 
-    static final class TakeSubscriber<T> extends FlowAsyncSubscriber<T, T> {
+    static final class TakeSubscriber<T> extends FlowIdentitySubscriber<T, T> {
 
         final long n;
 

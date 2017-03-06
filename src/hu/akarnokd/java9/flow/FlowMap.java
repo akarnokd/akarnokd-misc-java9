@@ -1,7 +1,7 @@
 package hu.akarnokd.java9.flow;
 
 import hu.akarnokd.java9.flow.functionals.FlowFunction;
-import hu.akarnokd.java9.flow.subscribers.FlowAsyncSubscriber;
+import hu.akarnokd.java9.flow.subscribers.FlowIdentitySubscriber;
 
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -29,7 +29,7 @@ public final class FlowMap<T, R> implements FlowAPI<R> {
         source.subscribe(new MapSubscriber<>(subscriber, mapper, executor, bufferSize));
     }
 
-    static final class MapSubscriber<T, R> extends FlowAsyncSubscriber<T, R> {
+    static final class MapSubscriber<T, R> extends FlowIdentitySubscriber<T, R> {
 
         final FlowFunction<? super T, ? extends R> mapper;
 

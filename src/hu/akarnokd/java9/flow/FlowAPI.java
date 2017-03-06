@@ -17,6 +17,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     static <T> FlowAPI<T> just(T item) {
         return just(item, ForkJoinPool.commonPool());
     }
+
     static <T> FlowAPI<T> just(T item, Executor executor) {
         // TODO implement
         throw new UnsupportedOperationException();

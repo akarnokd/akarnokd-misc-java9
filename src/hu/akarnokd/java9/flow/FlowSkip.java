@@ -1,6 +1,6 @@
 package hu.akarnokd.java9.flow;
 
-import hu.akarnokd.java9.flow.subscribers.FlowAsyncSubscriber;
+import hu.akarnokd.java9.flow.subscribers.FlowIdentitySubscriber;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
@@ -27,7 +27,7 @@ public final class FlowSkip<T> implements FlowAPI<T> {
         source.subscribe(new SkipSubscriber<>(subscriber, n, executor, bufferSize));
     }
 
-    static final class SkipSubscriber<T> extends FlowAsyncSubscriber<T, T> {
+    static final class SkipSubscriber<T> extends FlowIdentitySubscriber<T, T> {
 
         final long n;
 

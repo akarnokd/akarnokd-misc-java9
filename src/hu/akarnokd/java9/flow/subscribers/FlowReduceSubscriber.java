@@ -7,76 +7,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class FlowReduceSubscriber<T, R>
-extends AtomicInteger
-implements Flow.Subscriber<T>, Flow.Subscription, Runnable {
-
-    final Flow.Subscriber<? super R> actual;
-
-    final int limit;
-
-    final Executor executor;
-
-    final T[] queue;
-
-    static final VarHandle QUEUE;
-
-    Flow.Subscription subscription;
+public abstract class FlowReduceSubscriber<T, R> extends FlowAsyncSubscriber<T, R> {
 
     volatile boolean requested;
-    volatile boolean cancelled;
-    volatile boolean done;
-    volatile boolean badRequest;
-    Throwable error;
 
-    boolean hasSubscribed;
-    long producerIndex;
-    long consumerIndex;
     int consumed;
 
-    static {
-        try {
-            QUEUE = MethodHandles.arrayElementVarHandle(Object[].class);
-        } catch (Exception ex) {
-            throw new InternalError(ex);
-        }
-    }
-
     public FlowReduceSubscriber(Flow.Subscriber<? super R> actual, int bufferSize, Executor executor) {
-        this.actual = actual;
-        this.limit = bufferSize - (bufferSize >> 2);
-        this.executor = executor;
-        this.queue = (T[])new Object[bufferSize];
-    }
-
-    @Override
-    public final void onSubscribe(Flow.Subscription subscription) {
-        this.subscription = subscription;
-        schedule();
-    }
-
-    @Override
-    public final void onNext(T item) {
-        T[] a = queue;
-        int m = a.length - 1;
-        long pi = producerIndex;
-        int offset = (int)pi & m;
-        QUEUE.setRelease(a, offset, item);
-        producerIndex = pi + 1;
-        schedule();
-    }
-
-    @Override
-    public final void onError(Throwable throwable) {
-        error = throwable;
-        done = true;
-        schedule();
-    }
-
-    @Override
-    public final void onComplete() {
-        done = true;
-        schedule();
+        super(actual, executor, bufferSize);
     }
 
     @Override
@@ -96,19 +34,10 @@ implements Flow.Subscriber<T>, Flow.Subscription, Runnable {
         schedule();
     }
 
-    protected final boolean isCancelled() {
-        return cancelled;
-    }
-
-    protected final void schedule() {
-        if (getAndIncrement() == 0) {
-            executor.execute(this);
-        }
-    }
-
     @Override
     public final void run() {
         Flow.Subscriber<? super R> a = actual;
+        T[] q = queue;
 
         if (!hasSubscribed) {
             hasSubscribed = true;
@@ -120,9 +49,9 @@ implements Flow.Subscriber<T>, Flow.Subscription, Runnable {
                 subscription.cancel();
                 a.onError(ex);
             }
+            subscription.request(q.length);
         }
 
-        T[] q = queue;
         int m = q.length - 1;
         int missing = 1;
         long ci = consumerIndex;
@@ -194,8 +123,6 @@ implements Flow.Subscriber<T>, Flow.Subscription, Runnable {
                 missing = w;
             }
         }
-
-        // TODO implement
     }
 
     protected abstract void onStart() throws Exception;
