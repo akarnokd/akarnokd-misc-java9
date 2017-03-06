@@ -4,41 +4,38 @@ import hu.akarnokd.java9.flow.subscribers.FlowGeneratorSubscription;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
-import java.util.concurrent.atomic.AtomicLong;
 
-public final class FlowRange implements FlowAPI<Integer> {
+public final class FlowArray<T> implements FlowAPI<T> {
 
-    final int start;
-    final int end;
+    final T[] array;
+
     final Executor executor;
 
-    public FlowRange(int start, int count, Executor executor) {
-        this.start = start;
-        this.end = start + count;
+    public FlowArray(T[] array, Executor executor) {
+        this.array = array;
         this.executor = executor;
     }
 
 
     @Override
-    public void subscribe(Flow.Subscriber<? super Integer> subscriber) {
-        RangeSubscription sub = new RangeSubscription(subscriber, start, end, executor);
+    public void subscribe(Flow.Subscriber<? super T> subscriber) {
+        ArraySubscription<T> sub = new ArraySubscription<>(subscriber, executor, array);
         sub.request(1);
     }
 
-    static final class RangeSubscription extends FlowGeneratorSubscription<Integer> {
-        final int end;
+    static final class ArraySubscription<T> extends FlowGeneratorSubscription<T> {
+        final T[] array;
 
         int index;
 
-        RangeSubscription(Flow.Subscriber<? super Integer> actual, int start, int end, Executor executor) {
+        ArraySubscription(Flow.Subscriber<? super T> actual, Executor executor, T[] array) {
             super(actual, executor);
-            this.index = start;
-            this.end = end;
+            this.array = array;
         }
 
         @Override
         public void run() {
-            Flow.Subscriber<? super Integer> a = actual;
+            Flow.Subscriber<? super T> a = actual;
 
             if (!hasSubscribed) {
                 hasSubscribed = true;
@@ -48,9 +45,10 @@ public final class FlowRange implements FlowAPI<Integer> {
                 }
             }
 
+            T[] q = array;
+            int f = q.length;
             long r = get();
             int idx = index;
-            int f = end;
             long e = 0L;
 
             for (;;) {
@@ -65,7 +63,15 @@ public final class FlowRange implements FlowAPI<Integer> {
                         return;
                     }
 
-                    a.onNext(idx);
+                    T v = q[idx];
+
+                    if (v == null) {
+                        cancelled = true;
+                        a.onError(new NullPointerException("Array element is null"));
+                        return;
+                    }
+
+                    a.onNext(v);
 
                     e++;
                     idx++;

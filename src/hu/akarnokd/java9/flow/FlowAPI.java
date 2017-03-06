@@ -5,6 +5,7 @@ import hu.akarnokd.java9.flow.subscribers.TestFlowSubscriber;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
@@ -15,52 +16,81 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     // -------------------------------------------------------------
 
     static <T> FlowAPI<T> just(T item) {
-        return just(item, ForkJoinPool.commonPool());
+        return just(item, FlowAPIPlugins.executor);
     }
 
     static <T> FlowAPI<T> just(T item, Executor executor) {
+        Objects.requireNonNull(item, "item is null");
+        Objects.requireNonNull(executor, "executor is null");
+        return FlowAPIPlugins.onAssembly(new FlowJust<>(item, executor));
+    }
+
+    static <T> FlowAPI<T> empty() {
+        return empty(FlowAPIPlugins.executor);
+    }
+
+    static <T> FlowAPI<T> empty(Executor executor) {
+        Objects.requireNonNull(executor, "executor is null");
         // TODO implement
         throw new UnsupportedOperationException();
     }
 
     static FlowAPI<Integer> range(int start, int count) {
-        return range(start, count, ForkJoinPool.commonPool());
+        return range(start, count, FlowAPIPlugins.executor);
     }
 
     static FlowAPI<Integer> range(int start, int count, Executor executor) {
+        Objects.requireNonNull(executor, "executor is null");
+        if (count == 0) {
+            return empty();
+        }
+        if (count == 1) {
+            return just(start, executor);
+        }
         if ((long)start + count > (long)Integer.MAX_VALUE) {
             throw new IllegalArgumentException();
         }
-        return new FlowRange(start, count, executor);
+        return FlowAPIPlugins.onAssembly(new FlowRange(start, count, executor));
+    }
+
+    static FlowAPI<Integer> characters(CharSequence cs) {
+        return characters(cs, FlowAPIPlugins.executor);
+    }
+
+    static FlowAPI<Integer> characters(CharSequence cs, Executor executor) {
+        Objects.requireNonNull(executor, "executor is null");
+        return FlowAPIPlugins.onAssembly(new FlowCharacters(cs, executor));
     }
 
     @SafeVarargs
     static <T> FlowAPI<T> fromArray(T... items) {
-        return fromArray(ForkJoinPool.commonPool(), items);
+        return fromArray(FlowAPIPlugins.executor, items);
     }
 
     @SafeVarargs
     static <T> FlowAPI<T> fromArray(Executor executor, T... items) {
-        // TODO implement
-        throw new UnsupportedOperationException();
+        Objects.requireNonNull(executor, "executor is null");
+        return FlowAPIPlugins.onAssembly(new FlowArray<>(items, executor));
     }
 
-    static <T> FlowAPI<T> fromIterable(Iterable<? extends T> source) {
-        return fromIterable(source, ForkJoinPool.commonPool());
+    static <T> FlowAPI<T> fromIterable(Iterable<T> source) {
+        return fromIterable(source, FlowAPIPlugins.executor);
     }
 
-    static <T> FlowAPI<T> fromIterable(Iterable<? extends T> source, Executor executor) {
-        // TODO implement
-        throw new UnsupportedOperationException();
+    static <T> FlowAPI<T> fromIterable(Iterable<T> source, Executor executor) {
+        Objects.requireNonNull(source, "source is null");
+        Objects.requireNonNull(executor, "executor is null");
+        return FlowAPIPlugins.onAssembly(new FlowIterable<>(source, executor));
     }
 
-    static <T> FlowAPI<T> fromStream(Stream<? extends T> source) {
-        return fromStream(source, ForkJoinPool.commonPool());
+    static <T> FlowAPI<T> fromStream(Stream<T> source) {
+        return fromStream(source, FlowAPIPlugins.executor);
     }
 
-    static <T> FlowAPI<T> fromStream(Stream<? extends T> source, Executor executor) {
-        // TODO implement
-        throw new UnsupportedOperationException();
+    static <T> FlowAPI<T> fromStream(Stream<T> source, Executor executor) {
+        Objects.requireNonNull(source, "source is null");
+        Objects.requireNonNull(executor, "executor is null");
+        return fromIterable(() -> source.iterator(), executor);
     }
 
     static <T> FlowAPI<T> fromFuture(CompletionStage<? extends T> cs) {
@@ -73,47 +103,70 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     }
 
     static FlowAPI<Long> interval(long initialDelay, long period, TimeUnit unit, ScheduledExecutorService executor) {
+        Objects.requireNonNull(executor, "executor is null");
         // TODO implement
         throw new UnsupportedOperationException();
     }
 
     static FlowAPI<Long> timer(long delay, TimeUnit unit, ScheduledExecutorService executor) {
+        Objects.requireNonNull(executor, "executor is null");
         // TODO implement
         throw new UnsupportedOperationException();
     }
 
     static <T> FlowAPI<T> concat(Iterable<? extends Flow.Publisher<? extends T>> sources) {
-        return concat(sources, ForkJoinPool.commonPool());
+        return concat(sources, FlowAPIPlugins.executor);
     }
 
     static <T> FlowAPI<T> concat(Iterable<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
+        Objects.requireNonNull(sources, "sources is null");
+        Objects.requireNonNull(executor, "executor is null");
         // TODO implement
         throw new UnsupportedOperationException();
     }
 
     static <T> FlowAPI<T> concatMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources) {
-        return concatMany(sources, ForkJoinPool.commonPool());
+        return concatMany(sources, FlowAPIPlugins.executor);
     }
 
     static <T> FlowAPI<T> concatMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
+        Objects.requireNonNull(sources, "sources is null");
+        Objects.requireNonNull(executor, "executor is null");
         // TODO implement
         throw new UnsupportedOperationException();
     }
 
+
+    @SafeVarargs
+    static <T> FlowAPI<T> concatArray(Flow.Publisher<? extends T>... sources) {
+        return concatArray(FlowAPIPlugins.executor, sources);
+    }
+
+    @SafeVarargs
+    static <T> FlowAPI<T> concatArray(Executor executor, Flow.Publisher<? extends T>... sources) {
+        Objects.requireNonNull(sources, "sources is null");
+        Objects.requireNonNull(executor, "executor is null");
+        return FlowAPIPlugins.onAssembly(new FlowConcatArray<>(sources, executor));
+    }
+
     static <T> FlowAPI<T> merge(Iterable<? extends Flow.Publisher<? extends T>> sources) {
-        return merge(sources, ForkJoinPool.commonPool());
+        return merge(sources, FlowAPIPlugins.executor);
     }
 
     static <T> FlowAPI<T> merge(Iterable<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
+        Objects.requireNonNull(sources, "sources is null");
+        Objects.requireNonNull(executor, "executor is null");
         // TODO implement
         throw new UnsupportedOperationException();
     }
 
     static <T> FlowAPI<T> mergeMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources) {
-        return mergeMany(sources, ForkJoinPool.commonPool());
+        return mergeMany(sources, FlowAPIPlugins.executor);
     }
 
     static <T> FlowAPI<T> mergeMany(Flow.Publisher<? extends Flow.Publisher<? extends T>> sources, Executor executor) {
+        Objects.requireNonNull(sources, "sources is null");
+        Objects.requireNonNull(executor, "executor is null");
         // TODO implement
         throw new UnsupportedOperationException();
     }
@@ -123,83 +176,91 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
     // -------------------------------------------------------------------------
 
     default <R> FlowAPI<R> map(FlowFunction<? super T, ? extends R> mapper) {
-        return map(mapper, ForkJoinPool.commonPool());
+        return map(mapper, FlowAPIPlugins.executor);
     }
 
     default <R> FlowAPI<R> map(FlowFunction<? super T, ? extends R> mapper, Executor executor) {
-        return new FlowMap<>(this, mapper, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowMap<>(this, mapper, executor, Flow.defaultBufferSize()));
     }
 
     default FlowAPI<T> filter(FlowPredicate<? super T> predicate) {
-        return filter(predicate, ForkJoinPool.commonPool());
+        return filter(predicate, FlowAPIPlugins.executor);
     }
 
     default FlowAPI<T> filter(FlowPredicate<? super T> predicate, Executor executor) {
-        return new FlowFilter<>(this, predicate, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowFilter<>(this, predicate, executor, Flow.defaultBufferSize()));
     }
 
     default FlowAPI<T> take(long n) {
-        return take(n, ForkJoinPool.commonPool());
+        return take(n, FlowAPIPlugins.executor);
     }
 
     default FlowAPI<T> take(long n, Executor executor) {
-        return new FlowTake<>(this, n, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowTake<>(this, n, executor, Flow.defaultBufferSize()));
     }
 
     default FlowAPI<T> skip(long n) {
-        return skip(n, ForkJoinPool.commonPool());
+        return skip(n, FlowAPIPlugins.executor);
     }
 
     default FlowAPI<T> skip(long n, Executor executor) {
-        return new FlowTake<>(this, n, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowSkip<>(this, n, executor, Flow.defaultBufferSize()));
     }
 
     default <C> FlowAPI<C> collect(Callable<? extends C> collectionSupplier, FlowConsumer2<? super C, ? super T> collector) {
-        return collect(collectionSupplier, collector, ForkJoinPool.commonPool());
+        return collect(collectionSupplier, collector, FlowAPIPlugins.executor);
     }
 
     default <C> FlowAPI<C> collect(Callable<? extends C> collectionSupplier, FlowConsumer2<? super C, ? super T> collector, Executor executor) {
-        return new FlowCollect<>(this, collectionSupplier, collector, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowCollect<>(this, collectionSupplier, collector, executor, Flow.defaultBufferSize()));
     }
 
     default <R> FlowAPI<R> reduce(Callable<? extends R> initialSupplier, FlowFunction2<R, ? super T, R> reducer) {
-        return reduce(initialSupplier, reducer, ForkJoinPool.commonPool());
+        return reduce(initialSupplier, reducer, FlowAPIPlugins.executor);
     }
 
     default <R> FlowAPI<R> reduce(Callable<? extends R> initialSupplier, FlowFunction2<R, ? super T, R> reducer, Executor executor) {
-        return new FlowReduce<>(this, initialSupplier, reducer, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowReduce<>(this, initialSupplier, reducer, executor, Flow.defaultBufferSize()));
     }
 
     default FlowAPI<Integer> sumInt() {
-        return sumInt(ForkJoinPool.commonPool());
+        return sumInt(FlowAPIPlugins.executor);
     }
 
     default FlowAPI<Integer> sumInt(Executor executor) {
-        return new FlowSumInt((Flow.Publisher<Number>)this, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowSumInt((Flow.Publisher<Number>)this, executor, Flow.defaultBufferSize()));
     }
 
     default FlowAPI<Long> sumLong() {
-        return sumLong(ForkJoinPool.commonPool());
+        return sumLong(FlowAPIPlugins.executor);
     }
 
     default FlowAPI<Long> sumLong(Executor executor) {
-        return new FlowSumLong((Flow.Publisher<Number>)this, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowSumLong((Flow.Publisher<Number>)this, executor, Flow.defaultBufferSize()));
     }
 
     default FlowAPI<Integer> maxInt() {
-        return maxInt(ForkJoinPool.commonPool());
+        return maxInt(FlowAPIPlugins.executor);
     }
 
     default FlowAPI<Integer> maxInt(Executor executor) {
-        return new FlowMaxInt((Flow.Publisher<Number>)this, executor, Flow.defaultBufferSize());
+        return FlowAPIPlugins.onAssembly(new FlowMaxInt((Flow.Publisher<Number>)this, executor, Flow.defaultBufferSize()));
     }
 
     default FlowAPI<List<T>> toList() {
-        return toList(ForkJoinPool.commonPool());
+        return toList(FlowAPIPlugins.executor);
     }
 
     default FlowAPI<List<T>> toList(Executor executor) {
         return collect(ArrayList::new, (list, t) -> list.add(t), executor);
+    }
+
+    default <R> FlowAPI<R> flatMapIterable(FlowFunction<? super T, ? extends Iterable<? extends R>> mapper) {
+        return flatMapIterable(mapper, FlowAPIPlugins.executor);
+    }
+
+    default <R> FlowAPI<R> flatMapIterable(FlowFunction<? super T, ? extends Iterable<? extends R>> mapper, Executor executor) {
+        return FlowAPIPlugins.onAssembly(new FlowFlatMapIterable<>(this, mapper, executor, Flow.defaultBufferSize()));
     }
 
     // ----------------------------------------------------------------

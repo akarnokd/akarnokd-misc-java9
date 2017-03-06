@@ -4,36 +4,33 @@ import hu.akarnokd.java9.flow.subscribers.FlowGeneratorSubscription;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
-import java.util.concurrent.atomic.AtomicLong;
 
-public final class FlowRange implements FlowAPI<Integer> {
+public final class FlowCharacters implements FlowAPI<Integer> {
 
-    final int start;
-    final int end;
+    final CharSequence chars;
+
     final Executor executor;
 
-    public FlowRange(int start, int count, Executor executor) {
-        this.start = start;
-        this.end = start + count;
+    public FlowCharacters(CharSequence chars, Executor executor) {
+        this.chars = chars;
         this.executor = executor;
     }
 
 
     @Override
     public void subscribe(Flow.Subscriber<? super Integer> subscriber) {
-        RangeSubscription sub = new RangeSubscription(subscriber, start, end, executor);
+        CharSubscription sub = new CharSubscription(subscriber, executor, chars);
         sub.request(1);
     }
 
-    static final class RangeSubscription extends FlowGeneratorSubscription<Integer> {
-        final int end;
+    static final class CharSubscription extends FlowGeneratorSubscription<Integer> {
+        final CharSequence chars;
 
         int index;
 
-        RangeSubscription(Flow.Subscriber<? super Integer> actual, int start, int end, Executor executor) {
+        CharSubscription(Flow.Subscriber<? super Integer> actual, Executor executor, CharSequence chars) {
             super(actual, executor);
-            this.index = start;
-            this.end = end;
+            this.chars = chars;
         }
 
         @Override
@@ -48,9 +45,10 @@ public final class FlowRange implements FlowAPI<Integer> {
                 }
             }
 
+            CharSequence q = chars;
+            int f = q.length();
             long r = get();
             int idx = index;
-            int f = end;
             long e = 0L;
 
             for (;;) {
@@ -65,7 +63,7 @@ public final class FlowRange implements FlowAPI<Integer> {
                         return;
                     }
 
-                    a.onNext(idx);
+                    a.onNext((int)q.charAt(idx));
 
                     e++;
                     idx++;
