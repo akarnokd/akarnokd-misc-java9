@@ -135,4 +135,100 @@ public class FlowMixedTest {
                     .assertRange(1, 1000);
         }
     }
+
+    @Test
+    public void empty() {
+        FlowAPIPlugins.executor = Runnable::run;
+
+        FlowAPI.empty().test().assertResult();
+    }
+
+
+    @Test
+    public void emptyAsync() {
+        FlowAPIPlugins.reset();
+
+        FlowAPI.empty().test()
+                .awaitDone(5, TimeUnit.SECONDS).assertResult();
+    }
+    @Test
+    public void filterAsyncSync() {
+        FlowAPIPlugins.executor = Runnable::run;
+
+        FlowAPI.range(1, 5)
+                .filterAsync(v -> FlowAPI.empty())
+                .test()
+                .assertResult();
+
+        FlowAPI.range(1, 5)
+                .filterAsync(v -> FlowAPI.just(v % 2 == 0))
+                .test()
+                .assertResult(2, 4);
+
+        FlowAPI.range(1, 1000)
+                .filterAsync(v -> FlowAPI.just(v % 2 == 0))
+                .reduce(() -> 0, (a, b) -> b)
+                .test()
+                .assertResult(1000);
+    }
+
+    @Test
+    public void filterAsyncAsync() {
+        FlowAPIPlugins.reset();
+
+        for (int i = 0; i < 1000; i++) {
+            FlowAPI.range(1, 1000)
+                    .filterAsync(v -> FlowAPI.just(v % 2 == 0))
+                    .reduce(() -> 0, (a, b) -> b)
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertResult(1000);
+        }
+    }
+
+    @Test
+    public void mapAsyncSync() {
+        FlowAPIPlugins.executor = Runnable::run;
+
+        FlowAPI.range(1, 5)
+                .mapAsync(v -> FlowAPI.just(v * 2))
+                .test()
+                .assertResult(2, 4, 6, 8, 10);
+
+        FlowAPI.range(1, 1000)
+                .mapAsync(v -> FlowAPI.just(v * 2))
+                .reduce(() -> 0, (a, b) -> b)
+                .test()
+                .assertResult(2000);
+    }
+
+    @Test
+    public void mapAsyncSyncMixed() {
+        FlowAPIPlugins.executor = Runnable::run;
+
+        FlowAPI.range(1, 5)
+                .mapAsync(v -> v % 2 == 0 ? FlowAPI.just(v * 2) : FlowAPI.empty())
+                .test()
+                .assertResult(4, 8);
+
+        FlowAPI.range(1, 1000)
+                .mapAsync(v -> v % 2 == 0 ? FlowAPI.just(v * 2) : FlowAPI.empty())
+                .reduce(() -> 0, (a, b) -> b)
+                .test()
+                .assertResult(2000);
+    }
+
+    @Test
+    public void mapAsyncAsync() {
+        FlowAPIPlugins.reset();
+
+        for (int i = 0; i < 1000; i++) {
+            FlowAPI.range(1, 1000)
+                    .mapAsync(v -> FlowAPI.just(v * 2))
+                    .reduce(() -> 0, (a, b) -> b)
+                    .test()
+                    .awaitDone(5, TimeUnit.SECONDS)
+                    .assertResult(2000);
+        }
+    }
 }

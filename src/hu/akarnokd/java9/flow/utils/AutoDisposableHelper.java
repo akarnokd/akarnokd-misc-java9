@@ -1,31 +1,28 @@
 package hu.akarnokd.java9.flow.utils;
 
+import hu.akarnokd.java9.flow.functionals.AutoDisposable;
+
 import java.lang.invoke.VarHandle;
 import java.util.concurrent.Flow;
 import java.util.concurrent.atomic.AtomicReference;
 
-public enum SubscriptionHelper implements Flow.Subscription {
+public enum AutoDisposableHelper implements AutoDisposable {
     INSTANCE;
 
 
     @Override
-    public void request(long n) {
-        // deliberately no-op
-    }
-
-    @Override
-    public void cancel() {
+    public void close() {
         // deliberately no-op
     }
 
 
-    public static boolean cancel(VarHandle field, Object instance) {
-        Flow.Subscription o = (Flow.Subscription)field.getAcquire(instance);
+    public static boolean close(VarHandle field, Object instance) {
+        AutoDisposable o = (AutoDisposable)field.getAcquire(instance);
         if (o != INSTANCE) {
-            o = (Flow.Subscription)field.getAndSet(instance, INSTANCE);
+            o = (AutoDisposable)field.getAndSet(instance, INSTANCE);
             if (o != INSTANCE) {
                 if (o != null) {
-                    o.cancel();
+                    o.close();
                 }
                 return true;
             }
@@ -33,12 +30,12 @@ public enum SubscriptionHelper implements Flow.Subscription {
         return false;
     }
 
-    public static boolean replace(VarHandle field, Object instance, Flow.Subscription next) {
+    public static boolean replace(VarHandle field, Object instance, AutoDisposable next) {
         for (;;) {
-            Flow.Subscription o = (Flow.Subscription)field.getAcquire(instance);
+            AutoDisposable o = (AutoDisposable)field.getAcquire(instance);
             if (o == INSTANCE) {
                 if (next != null) {
-                    next.cancel();
+                    next.close();
                 }
                 return false;
             }
@@ -48,31 +45,31 @@ public enum SubscriptionHelper implements Flow.Subscription {
         }
     }
 
-    public static boolean set(VarHandle field, Object instance, Flow.Subscription next) {
+    public static boolean set(VarHandle field, Object instance, AutoDisposable next) {
         for (;;) {
-            Flow.Subscription o = (Flow.Subscription)field.getAcquire(instance);
+            AutoDisposable o = (AutoDisposable)field.getAcquire(instance);
             if (o == INSTANCE) {
                 if (next != null) {
-                    next.cancel();
+                    next.close();
                 }
                 return false;
             }
             if (field.compareAndSet(instance, o, next)) {
                 if (o != null) {
-                    o.cancel();
+                    o.close();
                 }
                 return true;
             }
         }
     }
 
-    public static boolean cancel(AtomicReference<Flow.Subscription> field) {
-        Flow.Subscription o = field.getAcquire();
+    public static boolean close(AtomicReference<AutoDisposable> field) {
+        AutoDisposable o = field.getAcquire();
         if (o != INSTANCE) {
             o = field.getAndSet(INSTANCE);
             if (o != INSTANCE) {
                 if (o != null) {
-                    o.cancel();
+                    o.close();
                 }
                 return true;
             }
@@ -80,12 +77,12 @@ public enum SubscriptionHelper implements Flow.Subscription {
         return false;
     }
 
-    public static boolean replace(AtomicReference<Flow.Subscription> field, Flow.Subscription next) {
+    public static boolean replace(AtomicReference<AutoDisposable> field, AutoDisposable next) {
         for (;;) {
-            Flow.Subscription o = field.getAcquire();
+            AutoDisposable o = field.getAcquire();
             if (o == INSTANCE) {
                 if (next != null) {
-                    next.cancel();
+                    next.close();
                 }
                 return false;
             }
@@ -95,18 +92,18 @@ public enum SubscriptionHelper implements Flow.Subscription {
         }
     }
 
-    public static boolean set(AtomicReference<Flow.Subscription> field, Flow.Subscription next) {
+    public static boolean set(AtomicReference<AutoDisposable> field, AutoDisposable next) {
         for (;;) {
-            Flow.Subscription o = field.getAcquire();
+            AutoDisposable o = field.getAcquire();
             if (o == INSTANCE) {
                 if (next != null) {
-                    next.cancel();
+                    next.close();
                 }
                 return false;
             }
             if (field.compareAndSet(o, next)) {
                 if (o != null) {
-                    o.cancel();
+                    o.close();
                 }
                 return true;
             }

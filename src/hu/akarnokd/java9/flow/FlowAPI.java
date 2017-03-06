@@ -34,8 +34,7 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
 
     static <T> FlowAPI<T> empty(Executor executor) {
         Objects.requireNonNull(executor, "executor is null");
-        // TODO implement
-        throw new UnsupportedOperationException();
+        return FlowAPIPlugins.onAssembly(new FlowEmpty<>(executor));
     }
 
     static FlowAPI<Integer> range(int start, int count) {
@@ -264,6 +263,23 @@ public interface FlowAPI<T> extends Flow.Publisher<T> {
 
     default <R> FlowAPI<R> flatMapIterable(FlowFunction<? super T, ? extends Iterable<? extends R>> mapper, Executor executor) {
         return FlowAPIPlugins.onAssembly(new FlowFlatMapIterable<>(this, mapper, executor));
+    }
+
+    default FlowAPI<T> filterAsync(FlowFunction<? super T, ? extends Flow.Publisher<Boolean>> asyncPredicate) {
+        return filterAsync(asyncPredicate, FlowAPIPlugins.defaultExecutor());
+    }
+
+    default FlowAPI<T> filterAsync(FlowFunction<? super T, ? extends Flow.Publisher<Boolean>> asyncPredicate, Executor executor) {
+        return FlowAPIPlugins.onAssembly(new FlowFilterAsync<>(this, executor, asyncPredicate, Flow.defaultBufferSize()));
+    }
+
+
+    default <R> FlowAPI<R> mapAsync(FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper) {
+        return mapAsync(asyncMapper, FlowAPIPlugins.defaultExecutor());
+    }
+
+    default <R> FlowAPI<R> mapAsync(FlowFunction<? super T, ? extends Flow.Publisher<? extends R>> asyncMapper, Executor executor) {
+        return FlowAPIPlugins.onAssembly(new FlowMapAsync<>(this, executor, asyncMapper, Flow.defaultBufferSize()));
     }
 
     // ----------------------------------------------------------------

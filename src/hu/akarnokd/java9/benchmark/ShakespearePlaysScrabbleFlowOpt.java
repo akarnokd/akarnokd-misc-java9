@@ -6,8 +6,10 @@ import hu.akarnokd.java9.flow.FlowAPIPlugins;
 import hu.akarnokd.java9.flow.functionals.FlowFunction;
 
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePerfBase {
 
@@ -107,17 +109,19 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
         FlowFunction<FlowFunction<String, FlowAPI<Integer>>, FlowAPI<TreeMap<Integer, List<String>>>> buildHistoOnScore =
                 score -> FlowAPI.fromIterable(shakespeareWords)
                         .filter(scrabbleWords::contains)
-                        .filter(word -> checkBlanks.apply(word).blockingFirst())
+                        //.filter(word -> checkBlanks.apply(word).blockingFirst())
+                        .filterAsync(checkBlanks)
+                        .mapAsync(w -> score.apply(w).map(j -> Map.entry(j, w)))
                         .collect(
                                 () -> new TreeMap<Integer, List<String>>(Comparator.reverseOrder()),
-                                (TreeMap<Integer, List<String>> map, String word) -> {
-                                    Integer key = score.apply(word).blockingFirst() ;
-                                    List<String> list = map.get(key) ;
+                                (TreeMap<Integer, List<String>> map, Map.Entry<Integer, String> word) -> {
+                                    //Integer key = score.apply(word).blockingFirst() ;
+                                    List<String> list = map.get(word.getKey()) ;
                                     if (list == null) {
                                         list = new ArrayList<>() ;
-                                        map.put(key, list) ;
+                                        map.put(word.getKey(), list) ;
                                     }
-                                    list.add(word) ;
+                                    list.add(word.getValue()) ;
                                 }
                         ) ;
 
@@ -139,11 +143,12 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
         return finalList2;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
 
         FlowAPIPlugins.executor = Runnable::run;
 
+        System.out.println(bench());
         benchmark("ShakespearePlaysScrabbleFlowOpt", () -> {
 
             return bench();
@@ -151,6 +156,7 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
 
         FlowAPIPlugins.reset();
 
+        System.out.println(bench());
         benchmark("ShakespearePlaysScrabbleFlowOpt-Async", () -> {
 
             return bench();
@@ -158,12 +164,28 @@ public class ShakespearePlaysScrabbleFlowOpt extends ShakespearePlaysScrabblePer
 
         ActorSystem actorSystem = ActorSystem.create();
 
-
+        /*
         FlowAPIPlugins.onExecutor = e -> {
             ActorRef actor = actorSystem.actorOf(Props.create(ActorExecutor.class));
             return r -> actor.tell(r, ActorRef.noSender());
         };
+        */
 
+        int actorCount = Runtime.getRuntime().availableProcessors();
+        ActorRef[] actors = new ActorRef[actorCount];
+        for (int i = 0; i < actors.length; i++) {
+            actors[i] = actorSystem.actorOf(Props.create(ActorExecutor.class));
+        }
+
+        FlowAPIPlugins.onExecutor = new Function<Executor, Executor>() {
+            int i;
+            @Override
+            public Executor apply(Executor e) {
+                return r -> actors[(i++) % actors.length].tell(r, ActorRef.noSender());
+            }
+        };
+
+        System.out.println(bench());
         benchmark("ShakespearePlaysScrabbleFlowOpt-Actor", () -> {
 
             return bench();

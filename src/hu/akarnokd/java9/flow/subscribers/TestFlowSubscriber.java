@@ -80,7 +80,7 @@ public class TestFlowSubscriber<T> implements Flow.Subscriber<T> {
 
     public final TestFlowSubscriber<T> assertResult(T... items) {
         if (!values.equals(Arrays.asList(items))) {
-            throw new AssertionError("Expected: " + Arrays.toString(items) + ", Actual: " + values);
+            throw new AssertionError("Expected: " + Arrays.toString(items) + ", Actual: " + values + ", Completions: " + completions);
         }
         if (completions != 1) {
             throw new AssertionError("Not completed: " + completions);

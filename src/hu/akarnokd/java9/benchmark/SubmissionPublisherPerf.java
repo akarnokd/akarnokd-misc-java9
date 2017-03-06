@@ -152,7 +152,7 @@ public class SubmissionPublisherPerf {
 
             return fs;
         });
-
+/*
         benchmark("MulticastPublisher2-async", () -> {
             MulticastPublisher2<Integer> sp = new MulticastPublisher2<>(ForkJoinPool.commonPool(), 128);
 
@@ -180,7 +180,7 @@ public class SubmissionPublisherPerf {
 
             return fs;
         });
-
+*/
         benchmark("SubmissionPublisher-async", () -> {
             SubmissionPublisher<Integer> sp = new SubmissionPublisher<>(ForkJoinPool.commonPool(), 128);
 

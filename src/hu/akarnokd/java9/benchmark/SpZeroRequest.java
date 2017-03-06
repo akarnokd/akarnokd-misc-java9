@@ -111,4 +111,74 @@ public class SpZeroRequest {
             exec.shutdownNow();
         }
     }
+
+    Flow.Subscriber<Integer> createSub(Object[] result, int index, CountDownLatch cdl) {
+        return new Flow.Subscriber<Integer>() {
+            @Override
+            public void onSubscribe(Flow.Subscription subscription) {
+
+            }
+
+            @Override
+            public void onNext(Integer item) {
+
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                result[index] = throwable;
+                cdl.countDown();
+            }
+
+            @Override
+            public void onComplete() {
+                result[index] = "complete";
+                cdl.countDown();
+            }
+        };
+    }
+
+    @Test
+    public void closeErrorRace() throws Exception {
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        try {
+            for (int i = 0; i < 1000; i++) {
+                System.out.println("Round " + i);
+                SubmissionPublisher<Integer> sp = new SubmissionPublisher<>();
+
+                CountDownLatch cdl = new CountDownLatch(2);
+
+                Object[] result = { null, null };
+
+                sp.subscribe(createSub(result, 0, cdl));
+
+                Flow.Subscriber<Integer> sb2 = createSub(result, 1, cdl);
+
+                Throwable ex = new RuntimeException();
+
+                AtomicInteger wip = new AtomicInteger(2);
+
+                Runnable r1 = () -> {
+                    wip.decrementAndGet();
+                    while (wip.get() != 0) ;
+
+                    sp.closeExceptionally(ex);
+                    sp.subscribe(sb2);
+                };
+
+                exec.submit(r1);
+
+                wip.decrementAndGet();
+                while (wip.get() != 0) ;
+
+                sp.close();
+
+                assertTrue(cdl.await(5, TimeUnit.SECONDS));
+
+                assertEquals(result[0], result[1]);
+            }
+        } finally {
+            exec.shutdownNow();
+        }
+    }
 }
