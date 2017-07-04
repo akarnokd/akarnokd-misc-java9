@@ -1,6 +1,7 @@
 package hu.akarnokd.java9.benchmark;
 
 import io.reactivex.internal.schedulers.ImmediateThinScheduler;
+import io.reactivex.internal.subscribers.StrictSubscriber;
 import io.reactivex.processors.PublishProcessor;
 import org.reactivestreams.Subscription;
 
@@ -212,7 +213,7 @@ public class SubmissionPublisherPerf {
             PublishProcessor<Integer> ps = PublishProcessor.create();
 
             MixedSubscriber<Integer> fs = newConsumer();
-            ps.strict().subscribe(fs);
+            ps.subscribe(fs);
             Integer v = 0;
             for (int i = 0; i < 1_000_000; i++) {
                 ps.onNext(v);
@@ -224,7 +225,7 @@ public class SubmissionPublisherPerf {
             PublishProcessor<Integer> ps = PublishProcessor.create();
 
             MixedSubscriber<Integer> fs = newConsumer();
-            ps.observeOn(ImmediateThinScheduler.INSTANCE).strict().subscribe(fs);
+            ps.observeOn(ImmediateThinScheduler.INSTANCE).subscribe(new StrictSubscriber<>(fs));
             Integer v = 0;
             for (int i = 0; i < 1_000_000; i++) {
                 ps.onNext(v);

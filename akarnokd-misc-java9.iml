@@ -20,5 +20,9 @@
     </orderEntry>
     <orderEntry type="library" name="org.reactivestreams:reactive-streams-tck:1.0.0" level="project" />
     <orderEntry type="library" name="com.typesafe.akka:akka-actor_2.11:2.5-M2" level="project" />
+    <orderEntry type="library" name="org.reactivestreams:reactive-streams:1.0.1-RC1" level="project" />
+    <orderEntry type="library" name="org.reactivestreams:reactive-streams-tck:1.0.1-RC1" level="project" />
+    <orderEntry type="library" name="io.reactivex.rxjava2:rxjava:2.1.1" level="project" />
+    <orderEntry type="library" name="com.typesafe.akka:akka-stream_2.11:2.5.3" level="project" />
   </component>
 </module>
