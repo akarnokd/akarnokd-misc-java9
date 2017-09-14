@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/akarnokd-misc-java9.iml" filepath="$PROJECT_DIR$/akarnokd-misc-java9.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/akarnokd-misc-java9_jmh.iml" filepath="$PROJECT_DIR$/.idea/modules/akarnokd-misc-java9_jmh.iml" group="akarnokd-misc-java9" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/akarnokd-misc-java9_main.iml" filepath="$PROJECT_DIR$/.idea/modules/akarnokd-misc-java9_main.iml" group="akarnokd-misc-java9" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/akarnokd-misc-java9_test.iml" filepath="$PROJECT_DIR$/.idea/modules/akarnokd-misc-java9_test.iml" group="akarnokd-misc-java9" />
     </modules>
   </component>
 </project>
