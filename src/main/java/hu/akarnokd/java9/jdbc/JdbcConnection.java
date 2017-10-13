@@ -1,6 +1,7 @@
 package hu.akarnokd.java9.jdbc;
 
 import java.util.concurrent.Flow;
+import java.util.function.BiConsumer;
 
 /**
  * Represents an active connection to the database and allows

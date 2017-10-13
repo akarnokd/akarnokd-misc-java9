@@ -2,7 +2,7 @@ package hu.akarnokd.java9.jdbc;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.Flow;
-import java.util.function.Consumer;
+import java.util.function.*;
 
 /**
  * Represents an immutable instruction to be executed by the database on a
@@ -118,6 +118,23 @@ public interface JdbcOperation {
          * @return the JdbcOperation with the specified parameters.
          */
         JdbcOperation build();
+
+        /**
+         * Consumes a Flow of values to be converted into a multi-valued JdbcOperation.
+         * <ul>
+         *     <li>Calling this method multiple times, similar to {@link #parameter(String, JdbcDataType, Object)}
+         *     will replace any previous batch of parameters</li>
+         * </ul>
+         * @param values the values to be turned into parameters
+         * @param build the consumer that receives the item from the values Flow.Publisher
+         *              and a Builder on which the regular {@link #parameter(String, JdbcDataType, Object)}
+         *              methods can be executed.
+         *              calling {@link #query(String)}, {@link #build()} or {@link #batch(Flow.Publisher, BiConsumer)}
+         *              on this Builder will result in an UnsupportedOperationException
+         * @param <T> the value type to turn into parameters
+         * @return this Builder
+         */
+        <T> Builder batch(Flow.Publisher<T> values, BiConsumer<? super T, Builder> build);
     }
 
     /**
