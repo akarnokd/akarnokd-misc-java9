@@ -72,6 +72,10 @@ public interface AsyncEnumerable<T> {
         return new AsyncError<>(error);
     }
 
+    static <T> AsyncEnumerable<T> defer(Supplier<? extends AsyncEnumerable<? extends T>> supplier) {
+        return new AsyncDefer<>(supplier);
+    }
+
     // -------------------------------------------------------------------------------------
     // Instance transformations
 
@@ -147,6 +151,14 @@ public interface AsyncEnumerable<T> {
 
     default AsyncEnumerable<T> onErrorResume(Function<? super Throwable, ? extends AsyncEnumerable<? extends T>> resumeMapper) {
         return new AsyncOnErrorResume<>(this, resumeMapper);
+    }
+
+    default <R> R to(Function<? super AsyncEnumerable<T>, R> converter) {
+        return converter.apply(this);
+    }
+
+    default <R> AsyncEnumerable<R> compose(Function<? super AsyncEnumerable<T>, ? extends AsyncEnumerable<R>> composer) {
+        return to(composer);
     }
 
     // -------------------------------------------------------------------------------------
