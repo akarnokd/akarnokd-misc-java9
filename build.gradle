@@ -48,6 +48,8 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile 'org.reactivestreams:reactive-streams-tck-flow:1.+'
     testCompile group: 'org.testng', name: 'testng', version: '6.11'
+
+    //jmhCompile "org.reactivestreams:reactive-streams:1.+"
     compile "org.reactivestreams:reactive-streams:1.+"
     compile "io.reactivex.rxjava2:rxjava:2.+"
     compile "com.github.akarnokd:rxjava2-extensions:+"
@@ -57,6 +59,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.typesafe.akka/akka-stream_2.11
     compile group: 'com.typesafe.akka', name: 'akka-stream_2.11', version: '2.5.4'
     compile "com.github.akarnokd:reactive4javaflow:+"
+    compile "com.github.akarnokd:async-enumerable:+"
 }
 
 [compileJava, compileTestJava]*.options*.compilerArgs << "-parameters"

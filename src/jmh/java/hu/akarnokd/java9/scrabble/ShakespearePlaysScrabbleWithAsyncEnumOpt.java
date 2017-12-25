@@ -18,7 +18,7 @@
 
 package hu.akarnokd.java9.scrabble;
 
-import hu.akarnokd.java9.asyncenum.AsyncEnumerable;
+import hu.akarnokd.asyncenum.AsyncEnumerable;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.*;
