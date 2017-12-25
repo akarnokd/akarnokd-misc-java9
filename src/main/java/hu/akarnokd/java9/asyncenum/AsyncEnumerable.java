@@ -21,6 +21,7 @@ public interface AsyncEnumerable<T> {
 
     // -------------------------------------------------------------------------------------
     // Static factories
+
     static AsyncEnumerable<Integer> range(int start, int count) {
         return new AsyncRange(start, count);
     }
@@ -61,6 +62,14 @@ public interface AsyncEnumerable<T> {
 
     static <T> AsyncEnumerable<T> fromFlowPublisher(Flow.Publisher<T> source) {
         return new AsyncFromFlowPublisher<>(source);
+    }
+
+    static <T> AsyncEnumerable<T> never() {
+        return AsyncNever.instance();
+    }
+
+    static <T> AsyncEnumerable<T> error(Throwable error) {
+        return new AsyncError<>(error);
     }
 
     // -------------------------------------------------------------------------------------
@@ -125,6 +134,19 @@ public interface AsyncEnumerable<T> {
 
     default Flow.Publisher<T> toFlowPublisher() {
         return new AsyncToFlowPublisher<>(this);
+    }
+
+    default AsyncEnumerable<T> timeout(long timeout, TimeUnit unit, ScheduledExecutorService executor) {
+        return new AsyncTimeoutTimed<>(this, timeout, unit, executor, null);
+    }
+
+    default AsyncEnumerable<T> timeout(long timeout, TimeUnit unit, ScheduledExecutorService executor, AsyncEnumerable<T> fallback) {
+        return new AsyncTimeoutTimed<>(this, timeout, unit, executor,
+                Objects.requireNonNull(fallback, "fallback == null"));
+    }
+
+    default AsyncEnumerable<T> onErrorResume(Function<? super Throwable, ? extends AsyncEnumerable<? extends T>> resumeMapper) {
+        return new AsyncOnErrorResume<>(this, resumeMapper);
     }
 
     // -------------------------------------------------------------------------------------
