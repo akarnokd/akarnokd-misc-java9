@@ -2,7 +2,6 @@ package hu.akarnokd.java9.asyncenum;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 
 public interface AsyncEnumerable<T> {
@@ -48,6 +47,22 @@ public interface AsyncEnumerable<T> {
         return new AsyncFromCharSequence(chars);
     }
 
+    static <T> AsyncEnumerable<T> fromCompletionStage(CompletionStage<T> stage) {
+        return new AsyncFromCompletionStage<>(stage);
+    }
+
+    static AsyncEnumerable<Long> timer(long time, TimeUnit unit, ScheduledExecutorService executor) {
+        return new AsyncTimer(time, unit, executor);
+    }
+
+    static <T> AsyncEnumerable<T> just(T item) {
+        return new AsyncJust<>(item);
+    }
+
+    static <T> AsyncEnumerable<T> fromFlowPublisher(Flow.Publisher<T> source) {
+        return new AsyncFromFlowPublisher<>(source);
+    }
+
     // -------------------------------------------------------------------------------------
     // Instance transformations
 
@@ -86,6 +101,30 @@ public interface AsyncEnumerable<T> {
 
     default AsyncEnumerable<T> max(Comparator<? super T> comparator) {
         return new AsyncMax<>(this, comparator);
+    }
+
+    default AsyncEnumerable<List<T>> toList() {
+        return collect(ArrayList::new, List::add);
+    }
+
+    default AsyncEnumerable<T> subscribeOn(Executor executor) {
+        return new AsyncSubscribeOn<>(this, executor);
+    }
+
+    default AsyncEnumerable<T> observeOn(Executor executor) {
+        return new AsyncObserveOn<>(this, executor);
+    }
+
+    default <U> AsyncEnumerable<T> takeUntil(AsyncEnumerable<U> other) {
+        return new AsyncTakeUntil<>(this, other);
+    }
+
+    default <R> AsyncEnumerable<R> concatMap(Function<? super T, ? extends AsyncEnumerable<? extends R>> mapper) {
+        return new AsyncConcatMap<>(this, mapper);
+    }
+
+    default Flow.Publisher<T> toFlowPublisher() {
+        return new AsyncToFlowPublisher<>(this);
     }
 
     // -------------------------------------------------------------------------------------
