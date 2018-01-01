@@ -124,7 +124,7 @@ public class ShakespearePlaysScrabbleWithAsyncEnumOpt extends ShakespearePlaysSc
 
         // Stream to be maxed
         Function<String, AsyncEnumerable<Integer>> toBeMaxed =
-            word -> AsyncEnumerable.concat(first3.apply(word), last3.apply(word))
+            word -> AsyncEnumerable.concatArray(first3.apply(word), last3.apply(word))
             ;
 
         // Bonus for double letter
@@ -136,7 +136,7 @@ public class ShakespearePlaysScrabbleWithAsyncEnumOpt extends ShakespearePlaysSc
         // score of the word put on the board
         Function<String, AsyncEnumerable<Integer>> score3 =
             word ->
-                AsyncEnumerable.concat(
+                AsyncEnumerable.concatArray(
                         score2.apply(word),
                         bonusForDoubleLetter.apply(word)
                 )
